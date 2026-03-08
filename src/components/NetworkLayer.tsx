@@ -4,6 +4,7 @@ import type { PortalNode } from "../data/portalNodes";
 interface NetworkLayerProps {
   nodes: PortalNode[];
   nodePositions: Record<string, { x: number; y: number }>;
+  corePosition: { x: number; y: number };
   hoveredId: string | null;
   activeId: string | null;
   hoveredSubitem: { nodeId: string; index: number } | null;
@@ -13,16 +14,15 @@ interface NetworkLayerProps {
 export default function NetworkLayer({
   nodes,
   nodePositions,
+  corePosition,
   hoveredId,
   activeId,
   hoveredSubitem,
-  isMobile,
+  isMobile: _isMobile,
 }: NetworkLayerProps) {
   const reduceMotion = useReducedMotion();
-  const core = { x: 50, y: isMobile ? 42 : 50 };
+  const core = corePosition;
   const hasFocus = Boolean(hoveredId || activeId);
-  const nodeHueBases = [6, 48, 132, 214, 292];
-
   return (
     <svg
       className="absolute inset-0 h-full w-full"
@@ -33,8 +33,8 @@ export default function NetworkLayer({
       <defs>
         <radialGradient id="flow-dot" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
-          <stop offset="35%" stopColor="rgba(209, 227, 255, 0.45)" />
-          <stop offset="100%" stopColor="rgba(209, 227, 255, 0)" />
+          <stop offset="35%" stopColor="rgba(221, 227, 236, 0.42)" />
+          <stop offset="100%" stopColor="rgba(221, 227, 236, 0)" />
         </radialGradient>
         <filter id="edge-soft-glow" x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur stdDeviation="0.35" result="blur" />
@@ -70,9 +70,8 @@ export default function NetworkLayer({
               const base = baseOffsets[strandIndex] * side;
               const drift = Math.sin(wave) * 3.8;
               const offset = base + drift;
-              const hue = (nodeHueBases[nodeIndex % nodeHueBases.length] + strandIndex * 24) % 360;
-              const strandColor = `hsla(${hue}, 96%, 70%, ${isHighlighted ? 0.94 : 0.58})`;
-              const strandHighlight = `hsla(${hue}, 100%, 90%, 0.9)`;
+              const strandColor = `rgba(196, 204, 214, ${isHighlighted ? 0.9 : 0.52})`;
+              const strandHighlight = "rgba(236, 241, 248, 0.9)";
               const isSubHighlighted = highlightedSubIndex === strandIndex;
               const isSubDimmed = highlightedSubIndex !== null && highlightedSubIndex !== strandIndex;
 
@@ -129,7 +128,7 @@ export default function NetworkLayer({
                   <motion.path
                     d={pathD}
                     fill="none"
-                    stroke={`hsla(${(hue + 42) % 360}, 100%, 88%, 0.2)`}
+                    stroke="rgba(211, 218, 228, 0.2)"
                     strokeWidth={0.1}
                     strokeDasharray="1.1 3.4"
                     animate={{

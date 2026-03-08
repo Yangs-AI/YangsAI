@@ -36,13 +36,9 @@ type MemberData = {
 
 export async function getStaticPaths() {
   const entries = await getCollection("team-members");
-  return entries.flatMap((entry) => {
-    const baseSlug = entry.id.replace(/\.md$/, "");
-    return [
-      { params: { slug: baseSlug } },
-      { params: { slug: `${baseSlug}.md` } },
-    ];
-  });
+  return entries.map((entry) => ({
+    params: { slug: entry.id.replace(/\.md$/, "") },
+  }));
 }
 
 const { slug } = Astro.params;
@@ -51,10 +47,7 @@ if (!slug) {
 }
 
 const entries = await getCollection("team-members");
-const entry = entries.find((item) => {
-  const itemSlug = item.id.replace(/\.md$/, "");
-  return item.id === slug || itemSlug === slug;
-});
+const entry = entries.find((item) => item.id === slug || item.id.replace(/\.md$/, "") === slug);
 if (!entry) {
   throw new Error(`Team member markdown not found for slug: ${slug}`);
 }

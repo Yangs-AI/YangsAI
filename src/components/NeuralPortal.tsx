@@ -6,6 +6,7 @@ import { coreNode, portalNodes, type PortalNodeId } from "../data/portalNodes";
 
 type NodePositionMap = Record<PortalNodeId, { x: number; y: number }>;
 type Point = { x: number; y: number };
+type CorePosition = { x: number; y: number };
 
 const NODE_DRAG_THRESHOLD_PX = 5;
 
@@ -28,8 +29,7 @@ function sampleCubicBezier(p0: Point, p1: Point, p2: Point, p3: Point, steps = 1
   });
 }
 
-function buildStrandSamplePoints(nodePositions: NodePositionMap, isMobile: boolean) {
-  const core = { x: 50, y: isMobile ? 42 : 50 };
+function buildStrandSamplePoints(nodePositions: NodePositionMap, core: CorePosition) {
   const points: Point[] = [];
 
   portalNodes.forEach((node, nodeIndex) => {
@@ -88,6 +88,10 @@ function getDefaultLayout(isMobile: boolean): NodePositionMap {
 
 function getLayoutStorageKey(isMobile: boolean) {
   return isMobile ? "yangsai-neuron-layout-mobile-v1" : "yangsai-neuron-layout-desktop-v1";
+}
+
+function getCoreStorageKey(isMobile: boolean) {
+  return isMobile ? "yangsai-core-layout-mobile-v1" : "yangsai-core-layout-desktop-v1";
 }
 
 function isPositionMap(value: unknown): value is NodePositionMap {
@@ -157,14 +161,25 @@ export default function NeuralPortal() {
     startClientY: number;
     moved: boolean;
   } | null>(null);
+  const coreDragStateRef = useRef<{
+    offsetX: number;
+    offsetY: number;
+    startClientX: number;
+    startClientY: number;
+    moved: boolean;
+  } | null>(null);
 
   const [nodePositions, setNodePositions] = useState<NodePositionMap>(() => getDefaultLayout(false));
+  const [corePosition, setCorePosition] = useState<CorePosition>({ x: 50, y: 50 });
 
   useEffect(() => {
     setLayoutReady(false);
     const storageKey = getLayoutStorageKey(isMobile);
+    const coreStorageKey = getCoreStorageKey(isMobile);
     const fallback = getDefaultLayout(isMobile);
+    const fallbackCore = { x: 50, y: isMobile ? 42 : 50 };
     let nextPositions = fallback;
+    let nextCore = fallbackCore;
 
     try {
       const raw = window.localStorage.getItem(storageKey);
@@ -174,9 +189,26 @@ export default function NeuralPortal() {
           nextPositions = parsed;
         }
       }
+
+      const coreRaw = window.localStorage.getItem(coreStorageKey);
+      if (coreRaw) {
+        const parsedCore = JSON.parse(coreRaw) as unknown;
+        if (
+          parsedCore &&
+          typeof parsedCore === "object" &&
+          typeof (parsedCore as Record<string, unknown>).x === "number" &&
+          typeof (parsedCore as Record<string, unknown>).y === "number"
+        ) {
+          nextCore = {
+            x: (parsedCore as Record<string, number>).x,
+            y: (parsedCore as Record<string, number>).y,
+          };
+        }
+      }
     } catch {}
 
     setNodePositions(nextPositions);
+    setCorePosition(nextCore);
     setLayoutReady(true);
   }, [isMobile]);
 
@@ -185,8 +217,10 @@ export default function NeuralPortal() {
       return;
     }
     const storageKey = getLayoutStorageKey(isMobile);
+    const coreStorageKey = getCoreStorageKey(isMobile);
     window.localStorage.setItem(storageKey, JSON.stringify(nodePositions));
-  }, [nodePositions, isMobile, layoutReady]);
+    window.localStorage.setItem(coreStorageKey, JSON.stringify(corePosition));
+  }, [nodePositions, corePosition, isMobile, layoutReady]);
 
   useEffect(() => {
     if (isMobile) {
@@ -235,7 +269,7 @@ export default function NeuralPortal() {
       const clampedX = Math.max(8, Math.min(92, nextXPct));
       const clampedY = Math.max(10, Math.min(88, nextYPct));
       const candidate = { x: clampedX, y: clampedY };
-      const core = { x: 50, y: isMobile ? 42 : 50 };
+      const core = corePosition;
       const minNodeGap = isMobile ? 22 : 18;
       const minCoreGap = isMobile ? 24 : 20;
 
@@ -270,6 +304,47 @@ export default function NeuralPortal() {
     return () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
+    };
+  }, [corePosition, isMobile]);
+
+  useEffect(() => {
+    const handleCoreMove = (event: PointerEvent) => {
+      const drag = coreDragStateRef.current;
+      const container = sectionRef.current;
+      if (!drag || !container) {
+        return;
+      }
+
+      const dragDistance = Math.hypot(event.clientX - drag.startClientX, event.clientY - drag.startClientY);
+      if (dragDistance < NODE_DRAG_THRESHOLD_PX) {
+        return;
+      }
+
+      const rect = container.getBoundingClientRect();
+      const nextX = event.clientX - rect.left - drag.offsetX;
+      const nextY = event.clientY - rect.top - drag.offsetY;
+      const nextXPct = (nextX / rect.width) * 100;
+      const nextYPct = (nextY / rect.height) * 100;
+      setCorePosition({
+        x: Math.max(20, Math.min(80, nextXPct)),
+        y: Math.max(20, Math.min(80, nextYPct)),
+      });
+      coreDragStateRef.current = { ...drag, moved: true };
+    };
+
+    const handleCoreUp = () => {
+      if (coreDragStateRef.current) {
+        window.setTimeout(() => {
+          coreDragStateRef.current = null;
+        }, 0);
+      }
+    };
+
+    window.addEventListener("pointermove", handleCoreMove);
+    window.addEventListener("pointerup", handleCoreUp);
+    return () => {
+      window.removeEventListener("pointermove", handleCoreMove);
+      window.removeEventListener("pointerup", handleCoreUp);
     };
   }, []);
 
@@ -320,6 +395,27 @@ export default function NeuralPortal() {
     setActiveNodeId((prev) => (prev === nodeId ? null : nodeId));
   };
 
+  const handleCorePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) {
+      return;
+    }
+    const container = sectionRef.current;
+    if (!container) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    const coreX = (corePosition.x / 100) * rect.width;
+    const coreY = (corePosition.y / 100) * rect.height;
+    coreDragStateRef.current = {
+      offsetX: event.clientX - rect.left - coreX,
+      offsetY: event.clientY - rect.top - coreY,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      moved: false,
+    };
+  };
+
   const hoveredNode = useMemo(
     () => portalNodes.find((node) => node.id === hoveredNodeId) ?? null,
     [hoveredNodeId],
@@ -354,21 +450,20 @@ export default function NeuralPortal() {
       Array.from({ length: 46 }, (_, i) => {
         const x = ((i * 31) % 100) + ((i % 4) - 1.5) * 1.25;
         const y = ((i * 23) % 100) + ((i % 5) - 2) * 1.15;
-        const radius = 0.14 + (i % 4) * 0.07;
+        const sizeRem = 0.14 + (i % 4) * 0.07;
         const alpha = 0.2 + (i % 5) * 0.075;
         const driftX = ((i % 3) - 1) * (0.6 + (i % 4) * 0.26);
         const driftY = ((i % 4) - 1.5) * (0.8 + (i % 5) * 0.22);
         const duration = 3.8 + (i % 6) * 0.75;
         const delay = (i % 7) * 0.24;
-        const tint = i % 3 === 0 ? "#baf8ff" : i % 3 === 1 ? "#d7ffd7" : "#fff5c4";
-        return { x, y, radius, alpha, driftX, driftY, duration, delay, tint };
+        return { x, y, sizeRem, alpha, driftX, driftY, duration, delay };
       }),
     [],
   );
 
   const strandSamplePoints = useMemo(
-    () => buildStrandSamplePoints(nodePositions, isMobile),
-    [nodePositions, isMobile],
+    () => buildStrandSamplePoints(nodePositions, corePosition),
+    [nodePositions, corePosition],
   );
 
   const firefliesWithAttraction = useMemo(() => {
@@ -433,20 +528,17 @@ export default function NeuralPortal() {
         <div className="absolute left-[14%] top-[18%] h-56 w-56 rounded-full bg-white/14 blur-3xl" />
         <div className="absolute right-[8%] top-[6%] h-72 w-72 rounded-full bg-zinc-200/12 blur-3xl" />
         <div className="absolute bottom-[8%] left-[44%] h-56 w-56 rounded-full bg-zinc-300/10 blur-3xl" />
-        <svg
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <defs>
-            <filter id="firefly-blur" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="0.42" />
-            </filter>
-          </defs>
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           {firefliesWithAttraction.map((firefly, index) => (
-            <motion.g
+            <motion.span
               key={`firefly-${index}`}
+              className="absolute rounded-full bg-zinc-100"
+              style={{
+                left: `${firefly.x}%`,
+                top: `${firefly.y}%`,
+                width: `${firefly.sizeRem}rem`,
+                height: `${firefly.sizeRem}rem`,
+              }}
               initial={false}
               animate={
                 reduceMotion
@@ -457,8 +549,8 @@ export default function NeuralPortal() {
                       scale: 1 + firefly.attraction * 0.18,
                     }
                   : {
-                      x: [0, firefly.driftX, 0],
-                      y: [0, firefly.driftY, 0],
+                      x: [0, firefly.driftX * 8, 0],
+                      y: [0, firefly.driftY * 8, 0],
                       opacity: [
                         firefly.alpha * (0.42 + firefly.attraction * 0.2),
                         firefly.alpha + firefly.attraction * 0.32,
@@ -474,31 +566,16 @@ export default function NeuralPortal() {
                 ease: "easeInOut",
                 delay: firefly.delay,
               }}
-            >
-              <circle
-                cx={firefly.x}
-                cy={firefly.y}
-                r={firefly.radius * 3}
-                fill={firefly.tint}
-                fillOpacity={0.22 + firefly.attraction * 0.38}
-                filter="url(#firefly-blur)"
-              />
-              <circle
-                cx={firefly.x}
-                cy={firefly.y}
-                r={firefly.radius}
-                fill={firefly.tint}
-                fillOpacity={0.74 + firefly.attraction * 0.26}
-              />
-            </motion.g>
+            />
           ))}
-        </svg>
+        </div>
       </motion.div>
 
       <div className="absolute inset-x-0 top-0 bottom-24">
       <NetworkLayer
         nodes={portalNodes}
         nodePositions={nodePositions}
+        corePosition={corePosition}
         hoveredId={hoveredNodeId}
         activeId={activeNodeId}
         hoveredSubitem={hoveredSubitem}
@@ -509,8 +586,7 @@ export default function NeuralPortal() {
         {portalNodes.map((node, index) => {
           const position = nodePositions[node.id];
           const highlighted = hoveredNodeId === node.id || activeNodeId === node.id;
-          const coreY = isMobile ? 42 : 50;
-          const orbitBiasAngle = Math.atan2(coreY - position.y, 50 - position.x);
+          const orbitBiasAngle = Math.atan2(corePosition.y - position.y, corePosition.x - position.x);
 
           return (
             <PrimaryNode
@@ -546,7 +622,9 @@ export default function NeuralPortal() {
       </div>
 
       <motion.div
-        className="absolute left-1/2 top-[46%] z-20 flex h-32 w-36 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-[56%_44%_52%_48%/52%_58%_42%_48%] border border-zinc-100/24 bg-[radial-gradient(circle_at_42%_36%,rgba(236,241,249,0.1),rgba(23,24,30,0.94)_64%)] text-center shadow-[0_10px_28px_rgba(4,6,12,0.58)] backdrop-blur-sm"
+        className="absolute z-20 flex h-24 w-28 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-[58%_42%_49%_51%/48%_56%_44%_52%] border border-zinc-100/24 bg-[radial-gradient(circle_at_42%_36%,rgba(236,241,249,0.1),rgba(23,24,30,0.94)_64%)] text-center shadow-[0_8px_22px_rgba(4,6,12,0.54)] backdrop-blur-sm active:cursor-grabbing"
+        style={{ left: `${corePosition.x}%`, top: `${corePosition.y}%` }}
+        onPointerDown={handleCorePointerDown}
         animate={{
           rotate: reduceMotion ? 0 : [0, 0.9, -0.8, 0],
           boxShadow: reduceMotion
@@ -563,6 +641,9 @@ export default function NeuralPortal() {
         tabIndex={0}
         data-core-node
         onClick={() => {
+          if (coreDragStateRef.current?.moved) {
+            return;
+          }
           setActiveNodeId(null);
           setHoveredSubitem(null);
           setHoveredNodeId(null);
@@ -576,14 +657,6 @@ export default function NeuralPortal() {
           }
         }}
       >
-        <motion.span
-          className="pointer-events-none absolute inset-[-8px] rounded-[56%_44%_52%_48%/52%_58%_42%_48%] border border-zinc-100/10"
-          animate={{
-            scale: reduceMotion ? 1 : [1, 1.06, 1],
-            opacity: reduceMotion ? 0.2 : [0.12, 0.26, 0.12],
-          }}
-          transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
-        />
         <span className="font-tech relative z-10 text-sm font-semibold tracking-[0.16em] text-zinc-100/88">
           {coreNode.label}
         </span>

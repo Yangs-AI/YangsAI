@@ -35,11 +35,11 @@ export default function PrimaryNode({
   const orbitRadius = node.subItems.length >= 5 ? 108 : 94;
 
   const shapeVariants: Record<PortalNode["id"], string> = {
-    research: "rounded-[34%_66%_57%_43%/41%_31%_69%_59%]",
-    resources: "rounded-[63%_37%_31%_69%/52%_66%_34%_48%]",
-    community: "rounded-[41%_59%_68%_32%/63%_37%_54%_46%]",
-    team: "rounded-[69%_31%_46%_54%/35%_64%_36%_65%]",
-    founder: "rounded-[38%_62%_28%_72%/68%_43%_57%_32%]",
+    research: "rounded-[36%_64%_52%_48%/44%_34%_66%_56%]",
+    resources: "rounded-[62%_38%_34%_66%/50%_64%_36%_50%]",
+    community: "rounded-[44%_56%_66%_34%/61%_39%_52%_48%]",
+    team: "rounded-[68%_32%_48%_52%/37%_63%_37%_63%]",
+    founder: "rounded-[40%_60%_30%_70%/66%_42%_58%_34%]",
   };
 
   const toneVariants: Record<PortalNode["id"], string> = {
@@ -107,17 +107,17 @@ export default function PrimaryNode({
     >
       <motion.button
         type="button"
-        className={`group relative flex h-[7.45rem] w-[8.35rem] cursor-grab items-center justify-center border border-zinc-100/24 text-center shadow-[0_10px_24px_rgba(4,6,12,0.58)] backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100/70 active:cursor-grabbing ${shapeVariants[node.id]} ${toneVariants[node.id]}`}
+        className={`group relative flex h-[5.3rem] w-[6.9rem] cursor-grab items-center justify-center border border-zinc-100/24 text-center shadow-[0_8px_18px_rgba(4,6,12,0.52)] backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-100/70 active:cursor-grabbing ${shapeVariants[node.id]} ${toneVariants[node.id]}`}
         onFocus={onHoverStart}
         onBlur={onHoverEnd}
         onPointerDown={onPointerDown}
         onClick={onClick}
         initial={false}
         animate={{
-          scale: highlighted ? 1.06 : 1,
+          scale: highlighted ? 1.04 : 1,
           boxShadow: highlighted
-            ? "0 12px 26px rgba(6, 9, 18, 0.62)"
-            : "0 8px 20px rgba(5, 8, 16, 0.54)",
+            ? "0 10px 22px rgba(6, 9, 18, 0.58)"
+            : "0 7px 16px rgba(5, 8, 16, 0.5)",
           rotate: reduceMotion ? 0 : [0, 1.2, -0.8, 0],
           y: reduceMotion ? 0 : [0, -1.5 * depth, 0],
         }}
@@ -141,10 +141,9 @@ export default function PrimaryNode({
         aria-expanded={expanded}
         aria-label={`${node.label}: ${node.shortDescription}`}
       >
-        <span className="pointer-events-none absolute inset-[-8px] rounded-[54%_46%_61%_39%/38%_61%_39%_62%] border border-zinc-100/16" />
         <motion.span
           layoutId={`node-title-${node.id}`}
-          className="font-tech relative z-10 text-[0.81rem] font-semibold tracking-[0.08em] text-zinc-100/90"
+          className="font-tech relative z-10 text-[0.72rem] font-semibold tracking-[0.08em] text-zinc-100/90"
         >
           {node.label}
         </motion.span>
