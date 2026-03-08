@@ -1,0 +1,25 @@
+{
+  "name": "apps-main",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "predev": "node ../../tools/sync-brand.mjs",
+    "prebuild": "node ../../tools/sync-brand.mjs",
+    "prepreview": "node ../../tools/sync-brand.mjs",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "astro": "^5.17.1",
+    "framer-motion": "^12.35.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwindcss": "^4.2.1"
+  }
+}

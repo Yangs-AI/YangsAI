@@ -1,0 +1,17 @@
+{
+  "name": "apps-benchmarks",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "predev": "node ../../tools/sync-brand.mjs",
+    "prebuild": "node ../../tools/sync-brand.mjs",
+    "prepreview": "node ../../tools/sync-brand.mjs",
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.17.1"
+  }
+}

@@ -1,0 +1,175 @@
+---
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/brand/favicon.svg" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/brand/favicon-16x16.png" />
+		<link rel="icon" href="/brand/favicon.ico" sizes="any" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Benchmarks Portal | YangsAI</title>
+		<meta
+			name="description"
+			content="Benchmarks portal for YangsAI. Track benchmark suites, evaluation status, reproducibility notes, and release updates."
+		/>
+		<style>
+			:root {
+				--bg-0: #0a0d10;
+				--bg-1: #11161c;
+				--line: #66727f;
+				--text: #e8edf3;
+				--muted: #b3bfcb;
+				--accent: #d5dde6;
+			}
+
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				min-height: 100vh;
+				font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+				color: var(--text);
+				background:
+					radial-gradient(1200px 560px at -8% -6%, rgba(220, 232, 246, 0.14), transparent 52%),
+					radial-gradient(900px 460px at 108% 0%, rgba(154, 173, 194, 0.12), transparent 56%),
+					linear-gradient(160deg, var(--bg-0), var(--bg-1));
+			}
+
+			.frame {
+				margin: 0 auto;
+				max-width: 980px;
+				padding: 3.2rem 1.1rem 2rem;
+			}
+
+			.hero {
+				border: 1px solid rgba(213, 221, 230, 0.22);
+				border-radius: 1.2rem;
+				padding: 1.3rem;
+				background: linear-gradient(180deg, rgba(20, 26, 33, 0.72), rgba(15, 20, 25, 0.72));
+				box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+			}
+
+			.badge {
+				display: inline-block;
+				font-size: 0.69rem;
+				letter-spacing: 0.14em;
+				text-transform: uppercase;
+				color: var(--muted);
+			}
+
+			h1 {
+				margin: 0.6rem 0 0;
+				font-size: clamp(2rem, 6vw, 3.6rem);
+				line-height: 0.96;
+				letter-spacing: -0.02em;
+			}
+
+			.lead {
+				margin: 0.95rem 0 0;
+				max-width: 64ch;
+				color: var(--muted);
+				line-height: 1.65;
+			}
+
+			.grid {
+				margin-top: 1.2rem;
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: 0.7rem;
+			}
+
+			.card {
+				border: 1px solid rgba(213, 221, 230, 0.18);
+				border-radius: 0.9rem;
+				padding: 0.9rem;
+				background: rgba(17, 21, 27, 0.58);
+			}
+
+			.card h2 {
+				margin: 0;
+				font-size: 0.92rem;
+				letter-spacing: 0.08em;
+				text-transform: uppercase;
+				color: var(--accent);
+			}
+
+			.card p {
+				margin: 0.45rem 0 0;
+				font-size: 0.92rem;
+				color: var(--muted);
+			}
+
+			.actions {
+				margin-top: 1rem;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.55rem;
+			}
+
+			.btn {
+				display: inline-block;
+				border-radius: 999px;
+				border: 1px solid rgba(213, 221, 230, 0.28);
+				padding: 0.46rem 0.9rem;
+				color: var(--text);
+				text-decoration: none;
+				font-size: 0.82rem;
+			}
+
+			.btn:hover {
+				background: rgba(213, 221, 230, 0.12);
+			}
+
+			footer {
+				margin-top: 1rem;
+				font-size: 0.77rem;
+				color: #9aa7b5;
+			}
+
+			@media (max-width: 780px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<main class="frame">
+			<section class="hero">
+				<span class="badge">benchmarks.yangs.ai</span>
+				<h1>Benchmark Portal</h1>
+				<p class="lead">
+					Single-page entry point for YangsAI benchmark programs. This portal is designed for rapid updates,
+					reproducibility reporting, and transparent release tracking.
+				</p>
+
+				<div class="grid">
+					<article class="card">
+						<h2>Suites</h2>
+						<p>Catalog benchmark suites by modality, data source, and task family.</p>
+					</article>
+					<article class="card">
+						<h2>Status</h2>
+						<p>Publish current run status, known issues, and pending validation checks.</p>
+					</article>
+					<article class="card">
+						<h2>Releases</h2>
+						<p>Track changelogs, version tags, and migration notes for benchmark users.</p>
+					</article>
+				</div>
+
+				<div class="actions">
+					<a class="btn" href="https://yangs.ai" target="_blank" rel="noreferrer">Visit Main Site</a>
+					<a class="btn" href="mailto:contact@yangs.ai">Contact Team</a>
+				</div>
+			</section>
+
+			<footer>YangsAI Benchmarks Portal • Built with Astro</footer>
+		</main>
+	</body>
+</html>
