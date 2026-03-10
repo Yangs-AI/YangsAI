@@ -5,6 +5,7 @@ import type { PortalNode } from "../data/portalNodes";
 interface PrimaryNodeProps {
   node: PortalNode;
   position: { x: number; y: number };
+  isMobile: boolean;
   orbitBiasAngle: number;
   depth: number;
   highlighted: boolean;
@@ -20,6 +21,7 @@ interface PrimaryNodeProps {
 export default function PrimaryNode({
   node,
   position,
+  isMobile,
   orbitBiasAngle,
   depth,
   highlighted,
@@ -32,7 +34,13 @@ export default function PrimaryNode({
   onClick,
 }: PrimaryNodeProps) {
   const reduceMotion = useReducedMotion();
-  const orbitRadius = node.subItems.length >= 5 ? 108 : 94;
+  const orbitRadius = isMobile
+    ? node.subItems.length >= 5
+      ? 74
+      : 64
+    : node.subItems.length >= 5
+      ? 108
+      : 94;
 
   const shapeVariants: Record<PortalNode["id"], string> = {
     research: "rounded-[36%_64%_52%_48%/44%_34%_66%_56%]",
@@ -57,7 +65,7 @@ export default function PrimaryNode({
     const safeCount = Math.max(1, count - 1);
     const start = orbitBiasAngle - arcSpan / 2;
 
-    const minGap = count >= 5 ? 30 : 24;
+    const minGap = isMobile ? (count >= 5 ? 22 : 18) : count >= 5 ? 30 : 24;
     const polar = node.subItems.map((_, index) => {
       const ratio = safeCount === 0 ? 0.5 : index / safeCount;
       const angle = start + arcSpan * ratio;
@@ -88,7 +96,7 @@ export default function PrimaryNode({
         y: Math.sin(entry.angle) * entry.radius,
       };
     });
-  }, [node.subItems, orbitBiasAngle, orbitRadius]);
+  }, [isMobile, node.subItems, orbitBiasAngle, orbitRadius]);
 
   return (
     <motion.div

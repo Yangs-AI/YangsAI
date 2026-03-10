@@ -190,8 +190,8 @@ const avatarSrc = avatar || fallbackAvatar;
 
   <div class="mt-4 flex flex-wrap gap-2">
     {email ? (
-      <a href={`mailto:${email}`} class="rounded-lg border border-zinc-100/24 bg-white/8 px-3 py-1.5 text-xs font-medium text-zinc-100 hover:bg-white/16">
-        Email
+      <a href={`mailto:${email}`} class="rounded-lg border border-zinc-100/24 bg-white/8 px-3 py-1.5 text-xs font-medium text-zinc-100 break-all hover:bg-white/16">
+        Email: {email}
       </a>
     ) : null}
     {website ? (
