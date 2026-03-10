@@ -38,5 +38,5 @@ I also work on graph generation, with a focus on graph diffusion models that gen
 
 3.
 	<p><strong>A Linear Combination-Based Method to Construct Proxy Benchmarks for Big Data Workloads</strong></p>
-	<p>Yikang Yang, Lei Wang, Jianfeng Zhan.</p>
+	<p>Yikang Yang, Lei Wang*, Jianfeng Zhan.</p>
 	<p>Bench 2023</p>
