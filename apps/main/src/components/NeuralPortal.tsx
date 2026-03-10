@@ -666,6 +666,7 @@ export default function NeuralPortal() {
               key={node.id}
               node={node}
               position={position}
+              isMobile={isMobile}
               orbitBiasAngle={orbitBiasAngle}
               depth={1 + (index % 3)}
               highlighted={highlighted}
@@ -794,7 +795,7 @@ export default function NeuralPortal() {
       <button
         type="button"
         data-reset-layout
-        className={`absolute bottom-2 right-2 z-50 cursor-pointer rounded-lg border px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.12em] focus-visible:outline-none focus-visible:ring-2 ${
+        className={`absolute left-2 top-2 z-50 cursor-pointer rounded-lg border px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.12em] focus-visible:outline-none focus-visible:ring-2 md:left-auto md:right-2 md:top-auto md:bottom-2 ${
           isLightTheme
             ? "border-slate-700/26 bg-white/90 text-slate-800 hover:bg-slate-100 focus-visible:ring-slate-700/58"
             : "border-zinc-100/24 bg-[rgba(20,20,24,0.88)] text-zinc-200 hover:bg-zinc-100/12 focus-visible:ring-zinc-200/85"
