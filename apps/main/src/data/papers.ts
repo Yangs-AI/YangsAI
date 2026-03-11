@@ -86,6 +86,28 @@ export const papers: PaperEntry[] = [
     selected: true,
   },
   {
+    id: "time-mosaic",
+    title: "TimeMosaic: Temporal Heterogeneity Guided Time Series Forecasting via Adaptive Granularity Patch and Segment-wise Decoding",
+    venue: "AAAI",
+    publishedOn: "2026-02",
+    authors: [
+      { name: "Kuiye Ding", isFirstAuthor: true },
+      { name: "Fanda Fan", isCorrespondingAuthor: true },
+      { name: "Chunyi Hou" },
+      { name: "Zheya Wang" },
+      { name: "Lei Wang" },
+      { name: "Zhengxin Yang" },
+      { name: "Jianfeng Zhan" }
+    ],
+    paperUrl: "https://openreview.net/forum?id=R4XXeYW4DW",
+    bibtex: `@inproceedings{ding2026timemosaic,
+      title={TimeMosaic: Temporal Heterogeneity Guided Time Series Forecasting via Adaptive Granularity Patch and Segment-wise Decoding},
+      author={Kuiye Ding and Fanda Fan and Chunyi Hou and Zheya Wang and Lei Wang and Zhengxin Yang and Jianfeng Zhan},
+      booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+      year={2026}
+    }`,
+  },
+  {
     id: "evaluatology-science-and-engineering",
     title: "Evaluatology: The Science and Engineering of Evaluation",
     venue: "TBench",
