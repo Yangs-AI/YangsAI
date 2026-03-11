@@ -1,5 +1,5 @@
 ---
-name: "Peng Luzhou"
+name: "Luzhou Peng"
 role: "Research Member"
 affiliation: "YangsAI"
 summary: "Works on model evaluation and design."
