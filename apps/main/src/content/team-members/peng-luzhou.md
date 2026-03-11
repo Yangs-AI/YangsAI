@@ -8,7 +8,7 @@ studentLevel: "master"
 graduated: false
 extraPublications:
   - title: "AGIBench: A Multi-granularity, Multimodal, Human-Referenced, Auto-Scoring Benchmark for Large Language Models"
-    venue: "Bench 2023"
+    venue: "Bench"
     publishedOn: "2024-02-14"
     authors:
       - name: "Fei Tang"
@@ -38,7 +38,7 @@ extraPublications:
 order: 2
 # avatar: "/images/team/sample-peng-luzhou.svg"
 email: "pengluzhou24s@ict.ac.cn"
-updatedOn: "2026-03-08"
+updatedOn: "2026-03-11"
 ---
 
 ## Profile

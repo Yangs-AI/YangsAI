@@ -1,5 +1,53 @@
 ---
 import { portalNodes } from "../data/portalNodes";
+import ExternalLinkIcon from "./ExternalLinkIcon.astro";
+
+const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+const normalizePath = (href?: string) => {
+  if (!href || !href.startsWith("/")) {
+    return null;
+  }
+
+  return href.replace(/\/+$/, "") || "/";
+};
+
+const isPathActive = (href?: string, mode: "exact" | "prefix" = "prefix") => {
+  const normalizedHref = normalizePath(href);
+  if (!normalizedHref) {
+    return false;
+  }
+
+  if (mode === "exact") {
+    return currentPath === normalizedHref;
+  }
+
+  if (normalizedHref === "/") {
+    return currentPath === "/";
+  }
+
+  return currentPath === normalizedHref || currentPath.startsWith(`${normalizedHref}/`);
+};
+
+const isEntryActive = (entry: { href: string; activeMatch?: "exact" | "prefix" }) =>
+  isPathActive(entry.href, entry.activeMatch ?? "prefix");
+
+const isNodeActive = (node: (typeof portalNodes)[number]) => {
+  const subItemActive = node.subItems.some((item) => isPathActive(item.href, "prefix"));
+  if (subItemActive) {
+    return true;
+  }
+
+  if (node.fallbackLink?.href) {
+    return isPathActive(node.fallbackLink.href, "prefix");
+  }
+
+  return false;
+};
+
+const isHomeActive = isPathActive("/", "exact");
+const isNewsActive = isPathActive("/news", "prefix");
+
 ---
 
 <header class="z-50 border-b border-white/12 bg-[rgba(14,14,16,0.76)] backdrop-blur-xl" data-site-header>
@@ -10,28 +58,57 @@ import { portalNodes } from "../data/portalNodes";
     </a>
     <div class="ml-auto flex items-center gap-2 md:gap-3" data-site-header-controls>
       <nav class="site-nav-desktop items-center gap-3">
+        <a
+          href="/"
+          data-nav-item
+          data-nav-home
+          data-active={isHomeActive ? "true" : "false"}
+          class={`font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] transition-colors ${isHomeActive ? "border-sky-200/70 bg-sky-200/22 text-sky-100" : "border-white/14 bg-white/4 text-zinc-200 hover:bg-white/10"}`}
+        >
+          Home
+        </a>
         {portalNodes.map((node) => (
         (() => {
+          const nodeActive = isNodeActive(node);
+          const newsEntry = node.id === "founder" ? (
+            <a
+              href="/news"
+              data-nav-item
+              data-nav-news
+              data-active={isNewsActive ? "true" : "false"}
+              class={`font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] transition-colors ${isNewsActive ? "border-sky-200/70 bg-sky-200/22 text-sky-100" : "border-white/14 bg-white/4 text-zinc-200 hover:bg-white/10"}`}
+            >
+              News
+            </a>
+          ) : null;
           const primaryEntries = [...node.subItems];
           const curatedEntries = [...node.links];
           if (primaryEntries.length === 0 && node.links.length === 0) {
             const fallback = node.fallbackLink;
             return (
+              <>
+              {newsEntry}
               <a
                 href={fallback?.href || "#"}
                 target={fallback?.external ? "_blank" : undefined}
                 rel={fallback?.external ? "noreferrer" : undefined}
                 data-draft-link={fallback?.draft || !fallback?.href ? "true" : undefined}
-                class="font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border border-white/14 bg-white/4 px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] text-zinc-200 hover:bg-white/10"
+                data-nav-item
+                data-active={isPathActive(fallback?.href) ? "true" : "false"}
+                class={`font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] transition-colors ${isPathActive(fallback?.href) ? "border-sky-200/70 bg-sky-200/22 text-sky-100" : "border-white/14 bg-white/4 text-zinc-200 hover:bg-white/10"}`}
               >
-                {node.label}
+                <span>{node.label}</span>
+                {fallback?.showExternalIndicator ? <ExternalLinkIcon /> : null}
               </a>
+              </>
             );
           }
 
           return (
+            <>
+            {newsEntry}
             <div class="group relative">
-              <button type="button" class="font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border border-white/14 bg-white/4 px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] text-zinc-200 hover:bg-white/10">
+              <button type="button" data-nav-item data-active={nodeActive ? "true" : "false"} class={`font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] transition-colors ${nodeActive ? "border-sky-200/70 bg-sky-200/22 text-sky-100" : "border-white/14 bg-white/4 text-zinc-200 hover:bg-white/10"}`}>
                 {node.label}
               </button>
               <div class="invisible pointer-events-none absolute right-0 top-full z-50 w-max max-w-[min(90vw,30rem)] pt-2 opacity-0 transition duration-150 group-hover:visible group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:visible group-focus-within:pointer-events-auto group-focus-within:opacity-100" data-nav-dropdown>
@@ -42,9 +119,12 @@ import { portalNodes } from "../data/portalNodes";
                       target={entry.external ? "_blank" : undefined}
                       rel={entry.external ? "noreferrer" : undefined}
                       data-draft-link={entry.draft || !entry.href ? "true" : undefined}
-                      class="block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs text-zinc-200 hover:bg-white/10"
+                      data-nav-item
+                      data-active={isEntryActive(entry) ? "true" : "false"}
+                      class={`block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs ${isEntryActive(entry) ? "bg-sky-200/20 text-sky-100" : "text-zinc-200 hover:bg-white/10"}`}
                     >
-                      {entry.label}
+                      <span>{entry.label}</span>
+                      {entry.showExternalIndicator ? <ExternalLinkIcon /> : null}
                     </a>
                   ))}
 
@@ -65,9 +145,12 @@ import { portalNodes } from "../data/portalNodes";
                               target={entry.external ? "_blank" : undefined}
                               rel={entry.external ? "noreferrer" : undefined}
                               data-draft-link={entry.draft || !entry.href ? "true" : undefined}
-                              class="block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs text-zinc-200 hover:bg-white/10"
+                              data-nav-item
+                              data-active={isEntryActive(entry) ? "true" : "false"}
+                              class={`block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs ${isEntryActive(entry) ? "bg-sky-200/20 text-sky-100" : "text-zinc-200 hover:bg-white/10"}`}
                             >
-                              {entry.label}
+                              <span>{entry.label}</span>
+                              {entry.showExternalIndicator ? <ExternalLinkIcon /> : null}
                             </a>
                           ))}
                         </div>
@@ -77,6 +160,7 @@ import { portalNodes } from "../data/portalNodes";
                 </div>
               </div>
             </div>
+            </>
           );
         })()
       ))}
@@ -87,29 +171,60 @@ import { portalNodes } from "../data/portalNodes";
           Menu
         </summary>
         <div class="absolute right-0 top-[calc(100%+0.45rem)] z-50 w-max max-w-[92vw] max-h-[70vh] overflow-auto rounded-xl border border-white/12 bg-[rgba(16,16,20,0.98)] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)]" data-mobile-menu-panel>
+          <a
+            href="/"
+            class={`mb-1 block whitespace-nowrap rounded-lg border px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isHomeActive ? "border-sky-200/60 bg-sky-200/20 text-sky-100" : "border-white/8 bg-white/3 text-zinc-200 hover:bg-white/8"}`}
+            data-mobile-menu-link
+            data-nav-item
+            data-nav-home
+            data-active={isHomeActive ? "true" : "false"}
+          >
+            Home
+          </a>
           {portalNodes.map((node) => (
             (() => {
+              const nodeActive = isNodeActive(node);
+              const newsEntry = node.id === "founder" ? (
+                <a
+                  href="/news"
+                  class={`mb-1 block whitespace-nowrap rounded-lg border px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isNewsActive ? "border-sky-200/60 bg-sky-200/20 text-sky-100" : "border-white/8 bg-white/3 text-zinc-200 hover:bg-white/8"}`}
+                  data-mobile-menu-link
+                  data-nav-item
+                  data-nav-news
+                  data-active={isNewsActive ? "true" : "false"}
+                >
+                  News
+                </a>
+              ) : null;
               const primaryEntries = [...node.subItems];
               const curatedEntries = [...node.links];
               if (primaryEntries.length === 0 && node.links.length === 0) {
                 const fallback = node.fallbackLink;
                 return (
+                  <>
+                  {newsEntry}
                   <a
                     href={fallback?.href || "#"}
                     target={fallback?.external ? "_blank" : undefined}
                     rel={fallback?.external ? "noreferrer" : undefined}
                     data-draft-link={fallback?.draft || !fallback?.href ? "true" : undefined}
-                    class="mb-1 block whitespace-nowrap rounded-lg border border-white/8 bg-white/3 px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] text-zinc-200 hover:bg-white/8"
+                    data-nav-item
+                    data-active={isPathActive(fallback?.href) ? "true" : "false"}
+                    class={`mb-1 block whitespace-nowrap rounded-lg border px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isPathActive(fallback?.href) ? "border-sky-200/60 bg-sky-200/20 text-sky-100" : "border-white/8 bg-white/3 text-zinc-200 hover:bg-white/8"}`}
                     data-mobile-menu-link
                   >
-                    {node.label}
+                    <span>{node.label}</span>
+                    {fallback?.showExternalIndicator ? <ExternalLinkIcon class="ml-1 inline-block h-3 w-3 opacity-85 align-text-bottom" /> : null}
                   </a>
+                  </>
                 );
               }
 
               return (
+                <>
+                {newsEntry}
                 <details class="mb-1 rounded-lg border border-white/8 bg-white/3 p-1" name="mobile-nav-category" data-mobile-submenu>
-                  <summary class="font-tech cursor-pointer list-none rounded-md px-2 py-1.5 text-right text-xs font-medium uppercase tracking-[0.12em] text-zinc-200 hover:bg-white/8">
+                  <summary data-nav-item data-active={nodeActive ? "true" : "false"} class={`font-tech cursor-pointer list-none rounded-md px-2 py-1.5 text-right text-xs font-medium uppercase tracking-[0.12em] ${nodeActive ? "bg-sky-200/20 text-sky-100" : "text-zinc-200 hover:bg-white/8"}`}>
                     {node.label}
                   </summary>
                   <div class="mt-1 space-y-0.5 px-1 pb-1">
@@ -119,10 +234,13 @@ import { portalNodes } from "../data/portalNodes";
                         target={entry.external ? "_blank" : undefined}
                         rel={entry.external ? "noreferrer" : undefined}
                         data-draft-link={entry.draft || !entry.href ? "true" : undefined}
-                        class="block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs text-zinc-300 hover:bg-white/8 hover:text-zinc-100"
+                        data-nav-item
+                        data-active={isEntryActive(entry) ? "true" : "false"}
+                        class={`block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs ${isEntryActive(entry) ? "bg-sky-200/20 text-sky-100" : "text-zinc-300 hover:bg-white/8 hover:text-zinc-100"}`}
                         data-mobile-menu-link
                       >
-                        {entry.label}
+                        <span>{entry.label}</span>
+                        {entry.showExternalIndicator ? <ExternalLinkIcon class="ml-1 inline-block h-3 w-3 opacity-85 align-text-bottom" /> : null}
                       </a>
                     ))}
 
@@ -138,10 +256,13 @@ import { portalNodes } from "../data/portalNodes";
                               target={entry.external ? "_blank" : undefined}
                               rel={entry.external ? "noreferrer" : undefined}
                               data-draft-link={entry.draft || !entry.href ? "true" : undefined}
-                              class="block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs text-zinc-300 hover:bg-white/8 hover:text-zinc-100"
+                              data-nav-item
+                              data-active={isEntryActive(entry) ? "true" : "false"}
+                              class={`block whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs ${isEntryActive(entry) ? "bg-sky-200/20 text-sky-100" : "text-zinc-300 hover:bg-white/8 hover:text-zinc-100"}`}
                               data-mobile-menu-link
                             >
-                              {entry.label}
+                              <span>{entry.label}</span>
+                              {entry.showExternalIndicator ? <ExternalLinkIcon class="ml-1 inline-block h-3 w-3 opacity-85 align-text-bottom" /> : null}
                             </a>
                           ))}
                         </div>
@@ -149,6 +270,7 @@ import { portalNodes } from "../data/portalNodes";
                     ) : null}
                   </div>
                 </details>
+                </>
               );
             })()
           ))}

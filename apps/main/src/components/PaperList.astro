@@ -1,6 +1,12 @@
 ---
 import { getCollection } from "astro:content";
 import { authorLinks } from "../data/papers";
+import {
+  getVenueFilterLabel,
+  getVenuePaperLabel,
+  resolveVenueKey,
+  type VenueKey,
+} from "../data/venueMap";
 import type { PaperEntry } from "../data/papers";
 
 interface Props {
@@ -55,19 +61,70 @@ const formatDate = (value: string) =>
     month: "short",
     day: "2-digit",
   });
+
+const filterVenueOptions = Array.from(new Set(sortedPapers.map((paper) => paper.venue as VenueKey))).sort((a, b) =>
+  getVenueFilterLabel(a).localeCompare(getVenueFilterLabel(b)),
+);
+
+const filterAuthorOptions = Array.from(
+  new Set(sortedPapers.flatMap((paper) => paper.authors.map((author) => author.name.replace(/\*/g, "").trim()))),
+).sort((a, b) => a.localeCompare(b));
+
+const normalizeFilterValue = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 ---
 
-<section class="mt-8 space-y-4">
+<section class="mt-8 space-y-4" data-paper-list-root>
   <p class="text-xs text-zinc-400">Author roles are highlighted for quick scanning.</p>
+
+  {sortedPapers.length > 0 ? (
+    <div class="paper-filters rounded-xl border border-white/12 bg-white/4 p-3" data-paper-filters>
+      <div class="flex flex-wrap items-end gap-3">
+        <label class="paper-filter-field">
+          <span>Conference / Venue</span>
+          <select data-paper-filter-venue>
+            <option value="all">All Venues</option>
+            {filterVenueOptions.map((venue) => (
+              <option value={venue}>{getVenueFilterLabel(venue)}</option>
+            ))}
+          </select>
+        </label>
+
+        <label class="paper-filter-field">
+          <span>Author</span>
+          <select data-paper-filter-author>
+            <option value="all">All Authors</option>
+            {filterAuthorOptions.map((author) => (
+              <option value={author}>{author}</option>
+            ))}
+          </select>
+        </label>
+
+        <button type="button" class="paper-filter-reset" data-paper-filter-reset>
+          Reset
+        </button>
+
+        <span class="paper-filter-count" data-paper-filter-count>
+          {sortedPapers.length} papers
+        </span>
+      </div>
+    </div>
+  ) : null}
 
   {sortedPapers.length === 0 ? (
     <div class="rounded-xl border border-white/15 bg-white/5 p-6 text-zinc-300">{emptyMessage}</div>
   ) : (
-    sortedPapers.map((paper) => (
-      <article class="rounded-xl border border-white/15 bg-white/5 p-5">
+    <>
+      <div class="space-y-4" data-paper-list>
+        {sortedPapers.map((paper) => (
+      <article
+        class="rounded-xl border border-white/15 bg-white/5 p-5"
+        data-paper-item
+        data-paper-venue={paper.venue}
+        data-paper-authors={paper.authors.map((author) => normalizeFilterValue(author.name.replace(/\*/g, ""))).join("|")}
+      >
         <h2 class="text-xl font-semibold leading-snug text-zinc-100">{paper.title}</h2>
         <p class="mt-2 text-sm text-zinc-300">
-          <span class="font-medium text-zinc-200">{paper.venue}</span>
+          <span class="font-medium text-zinc-200">{getVenuePaperLabel(paper.venue)}</span>
           <span class="mx-2 text-zinc-500">|</span>
           <time datetime={paper.publishedOn}>{formatDate(paper.publishedOn)}</time>
         </p>
@@ -199,7 +256,12 @@ const formatDate = (value: string) =>
           </dialog>
         ) : null}
       </article>
-    ))
+    ))}
+      </div>
+      <div class="hidden rounded-xl border border-white/12 bg-white/4 p-4 text-sm text-zinc-300" data-paper-filter-empty>
+        No papers match this filter combination.
+      </div>
+    </>
   )}
 </section>
 
@@ -214,6 +276,79 @@ const formatDate = (value: string) =>
     border-radius: 0.62rem;
     padding: 0.18rem 0.62rem;
     text-decoration: none;
+  }
+
+  .paper-filters {
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(6px);
+  }
+
+  .paper-filter-field {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 11rem;
+  }
+
+  .paper-filter-field > span {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a1a1aa;
+  }
+
+  .paper-filter-field > select {
+    appearance: none;
+    height: 2rem;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    background: rgba(15, 23, 42, 0.52);
+    color: #f1f5f9;
+    padding: 0 0.55rem;
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+
+  .paper-filter-field > select:focus-visible {
+    outline: none;
+    border-color: rgba(125, 211, 252, 0.75);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  }
+
+  .paper-filter-field > select option {
+    background: #0f172a;
+    color: #f8fafc;
+  }
+
+  .paper-filter-reset {
+    height: 2rem;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #e4e4e7;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0 0.7rem;
+    cursor: pointer;
+  }
+
+  .paper-filter-reset:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .paper-filter-reset:focus-visible {
+    outline: none;
+    border-color: rgba(125, 211, 252, 0.75);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  }
+
+  .paper-filter-count {
+    margin-left: auto;
+    font-size: 0.74rem;
+    color: #a1a1aa;
   }
 
   .author-chip--link {
@@ -303,6 +438,41 @@ const formatDate = (value: string) =>
   :global(html[data-theme="light"] .author-chip-label--me) {
     background: rgba(20, 184, 166, 0.16);
     color: #0f766e;
+  }
+
+  :global(html[data-theme="light"] .paper-filter-field > span) {
+    color: #475569;
+  }
+
+  :global(html[data-theme="light"] .paper-filter-field > select) {
+    border-color: rgba(51, 65, 85, 0.34);
+    background: rgba(255, 255, 255, 0.98);
+    color: #1f2937;
+  }
+
+  :global(html[data-theme="light"] .paper-filter-field > select option) {
+    background: #ffffff;
+    color: #0f172a;
+  }
+
+  :global(html[data-theme="light"] .paper-filters) {
+    border-color: rgba(51, 65, 85, 0.24);
+    background: rgba(244, 249, 255, 0.95);
+    box-shadow: 0 10px 24px rgba(98, 124, 158, 0.16);
+  }
+
+  :global(html[data-theme="light"] .paper-filter-reset) {
+    border-color: rgba(51, 65, 85, 0.24);
+    background: rgba(241, 245, 249, 0.9);
+    color: #1f2937;
+  }
+
+  :global(html[data-theme="light"] .paper-filter-reset:hover) {
+    background: rgba(226, 232, 240, 0.96);
+  }
+
+  :global(html[data-theme="light"] .paper-filter-count) {
+    color: #475569;
   }
 
   :global(.bibtex-dialog) {
@@ -433,5 +603,61 @@ const formatDate = (value: string) =>
         }
       }, 220);
     });
+  });
+
+  const paperRoots = document.querySelectorAll("[data-paper-list-root]");
+  paperRoots.forEach((root) => {
+    const venueSelect = root.querySelector("[data-paper-filter-venue]");
+    const authorSelect = root.querySelector("[data-paper-filter-author]");
+    const resetButton = root.querySelector("[data-paper-filter-reset]");
+    const countEl = root.querySelector("[data-paper-filter-count]");
+    const items = Array.from(root.querySelectorAll("[data-paper-item]"));
+    const emptyEl = root.querySelector("[data-paper-filter-empty]");
+
+    if (!(venueSelect instanceof HTMLSelectElement) || !(authorSelect instanceof HTMLSelectElement)) {
+      return;
+    }
+
+    const applyFilters = () => {
+      const venueValue = normalize(venueSelect.value);
+      const authorValue = normalize(authorSelect.value);
+      let visibleCount = 0;
+
+      items.forEach((item) => {
+        const paperVenue = normalize(item.getAttribute("data-paper-venue") ?? "");
+        const paperAuthors = (item.getAttribute("data-paper-authors") ?? "").split("|").map(normalize);
+        const matchesVenue = venueValue === "all" || paperVenue === venueValue;
+        const matchesAuthor = authorValue === "all" || paperAuthors.includes(authorValue);
+        const visible = matchesVenue && matchesAuthor;
+
+        if (visible) {
+          visibleCount += 1;
+          item.classList.remove("hidden");
+        } else {
+          item.classList.add("hidden");
+        }
+      });
+
+      if (countEl) {
+        countEl.textContent = `${visibleCount} paper${visibleCount === 1 ? "" : "s"}`;
+      }
+
+      if (emptyEl instanceof HTMLElement) {
+        emptyEl.classList.toggle("hidden", visibleCount > 0);
+      }
+    };
+
+    const normalize = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
+
+    venueSelect.addEventListener("change", applyFilters);
+    authorSelect.addEventListener("change", applyFilters);
+
+    if (resetButton instanceof HTMLButtonElement) {
+      resetButton.addEventListener("click", () => {
+        venueSelect.value = "all";
+        authorSelect.value = "all";
+        applyFilters();
+      });
+    }
   });
 </script>

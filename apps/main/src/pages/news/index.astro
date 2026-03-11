@@ -1,0 +1,138 @@
+---
+import BackButton from "../../components/BackButton.astro";
+import SubpageLayout from "../../layouts/SubpageLayout.astro";
+import { homeNewsItems } from "../../data/homeNewsItems";
+
+type NewsTextSegment = { text: string; isPaperTitle: boolean };
+
+const sortedNews = [...homeNewsItems].sort(
+  (a, b) => new Date(b.publishedOn).getTime() - new Date(a.publishedOn).getTime(),
+);
+
+const formatDate = (value: string) =>
+  new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+
+const splitNewsRichText = (text: string): NewsTextSegment[] => {
+  const segments: NewsTextSegment[] = [];
+  const pattern = /\[\[(.+?)\]\]/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ text: text.slice(lastIndex, match.index), isPaperTitle: false });
+    }
+    segments.push({ text: match[1], isPaperTitle: true });
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    segments.push({ text: text.slice(lastIndex), isPaperTitle: false });
+  }
+
+  return segments.length > 0 ? segments : [{ text, isPaperTitle: false }];
+};
+---
+
+<SubpageLayout title="News | Yangs AI" description="Latest and historical updates from Yangs AI.">
+  <BackButton href="/" label="Back to Home" />
+
+  <p class="font-tech mt-5 text-xs uppercase tracking-[0.12em] text-zinc-300">Updates</p>
+  <h1 class="mt-2 text-4xl font-semibold tracking-tight text-zinc-100 md:text-5xl">News</h1>
+  <p class="mt-4 max-w-3xl text-base leading-relaxed text-zinc-300">
+    Historical updates and announcements from Yangs AI.
+  </p>
+
+  <section class="mt-8 space-y-4" data-news-history>
+    {sortedNews.map((item) => (
+      <article class="rounded-xl border border-white/14 bg-white/5 p-5" data-news-article>
+        <p class="text-xs uppercase tracking-[0.1em] text-zinc-400" data-news-date>{formatDate(item.publishedOn)}</p>
+        <h2 class="mt-1 text-xl font-semibold text-zinc-100" data-news-title>{item.title}</h2>
+        <p class="mt-2 rounded-lg border border-sky-100/20 bg-sky-300/8 px-3 py-2.5 text-[0.95rem] leading-relaxed text-zinc-100" data-news-summary>{splitNewsRichText(item.summary).map((segment) => (
+          segment.isPaperTitle ? (
+            <span class="mx-[0.08rem] inline rounded-md bg-amber-300/16 px-1 py-[0.03rem] font-semibold italic text-amber-100">{segment.text}</span>
+          ) : (
+            <span>{segment.text}</span>
+          )
+        ))}</p>
+        <div class="mt-3 space-y-2 border-t border-zinc-100/10 pt-2" data-news-body>
+          {item.body.map((paragraph) => (
+            <p class="text-sm leading-relaxed text-zinc-200">{splitNewsRichText(paragraph).map((segment) => (
+              segment.isPaperTitle ? (
+                <span class="mx-[0.08rem] inline rounded-md bg-amber-300/16 px-1 py-[0.03rem] font-semibold italic text-amber-100">{segment.text}</span>
+              ) : (
+                <span>{segment.text}</span>
+              )
+            ))}</p>
+          ))}
+        </div>
+        {item.ctaHref ? (
+          <a
+            href={item.ctaHref}
+            target={item.ctaExternal ? "_blank" : undefined}
+            rel={item.ctaExternal ? "noreferrer" : undefined}
+            class="mt-3 inline-block rounded-lg border border-zinc-100/24 bg-white/8 px-3 py-1.5 text-xs font-medium text-zinc-100 hover:bg-white/16"
+            data-news-cta
+          >
+            {item.ctaLabel ?? "Read More"}
+          </a>
+        ) : null}
+      </article>
+    ))}
+  </section>
+
+  <style>
+    :global(html[data-theme="light"] [data-news-article]) {
+      border-color: rgba(51, 65, 85, 0.2);
+      background: rgba(248, 252, 255, 0.94);
+      box-shadow: 0 10px 24px rgba(99, 124, 157, 0.14);
+    }
+
+    :global(html[data-theme="light"] [data-news-date]) {
+      color: #475569 !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-title]) {
+      color: #0f172a !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-summary]) {
+      border-color: rgba(30, 64, 175, 0.26);
+      background: rgba(219, 234, 254, 0.62);
+      color: #1e293b !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-summary] .bg-amber-300\/16) {
+      background: rgba(251, 191, 36, 0.28) !important;
+      color: #7c2d12 !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-body]) {
+      border-top-color: rgba(51, 65, 85, 0.2) !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-body] p) {
+      color: #334155 !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-body] .bg-amber-300\/16) {
+      background: rgba(251, 191, 36, 0.28) !important;
+      color: #7c2d12 !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-cta]) {
+      border-color: rgba(30, 64, 175, 0.3) !important;
+      background: rgba(59, 130, 246, 0.14) !important;
+      color: #1e3a8a !important;
+    }
+
+    :global(html[data-theme="light"] [data-news-cta]:hover) {
+      background: rgba(59, 130, 246, 0.22) !important;
+      color: #1e40af !important;
+    }
+  </style>
+</SubpageLayout>

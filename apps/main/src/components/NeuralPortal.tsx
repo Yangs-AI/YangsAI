@@ -2,13 +2,37 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import NetworkLayer from "./NetworkLayer";
 import PrimaryNode from "./PrimaryNode";
+import { homeFeaturedLinks } from "../data/homeFeaturedLinks";
+import { HOME_NEWS_HOME_LIMIT, homeNewsItems } from "../data/homeNewsItems";
 import { coreNode, portalNodes, type PortalNodeId } from "../data/portalNodes";
 
 type NodePositionMap = Record<PortalNodeId, { x: number; y: number }>;
 type Point = { x: number; y: number };
 type CorePosition = { x: number; y: number };
+type NewsTextSegment = { text: string; isPaperTitle: boolean };
 
 const NODE_DRAG_THRESHOLD_PX = 5;
+
+function splitNewsRichText(text: string): NewsTextSegment[] {
+  const segments: NewsTextSegment[] = [];
+  const pattern = /\[\[(.+?)\]\]/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ text: text.slice(lastIndex, match.index), isPaperTitle: false });
+    }
+    segments.push({ text: match[1], isPaperTitle: true });
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    segments.push({ text: text.slice(lastIndex), isPaperTitle: false });
+  }
+
+  return segments.length > 0 ? segments : [{ text, isPaperTitle: false }];
+}
 
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
@@ -161,6 +185,8 @@ export default function NeuralPortal() {
   const [containerAspectRatio, setContainerAspectRatio] = useState(1);
   const [layoutReady, setLayoutReady] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const [panelOpen, setPanelOpen] = useState({ news: false, featured: false, info: true });
+  const [activeNewsId, setActiveNewsId] = useState<string | null>(null);
   const dragStateRef = useRef<{
     nodeId: PortalNodeId;
     offsetX: number;
@@ -280,6 +306,21 @@ export default function NeuralPortal() {
       setHoveredSubitem(null);
     }
   }, [isMobile]);
+
+  useEffect(() => {
+    setPanelOpen(isMobile ? { news: false, featured: false, info: true } : { news: true, featured: true, info: true });
+  }, [isMobile]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveNewsId(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const handlePointerDown = (event: globalThis.PointerEvent) => {
@@ -480,6 +521,50 @@ export default function NeuralPortal() {
 
   const infoNode = hoveredNode ?? activeNode;
 
+  const sortedNewsItems = useMemo(
+    () => [...homeNewsItems].sort((a, b) => new Date(b.publishedOn).getTime() - new Date(a.publishedOn).getTime()),
+    [],
+  );
+
+  const latestNewsItems = useMemo(
+    () => sortedNewsItems.slice(0, Math.max(1, HOME_NEWS_HOME_LIMIT)),
+    [sortedNewsItems],
+  );
+
+  const activeNewsItem = useMemo(
+    () => sortedNewsItems.find((item) => item.id === activeNewsId) ?? null,
+    [sortedNewsItems, activeNewsId],
+  );
+
+  const activeNewsIndex = useMemo(
+    () => sortedNewsItems.findIndex((item) => item.id === activeNewsId),
+    [sortedNewsItems, activeNewsId],
+  );
+
+  const previousNewsItem = activeNewsIndex >= 0 ? sortedNewsItems[activeNewsIndex - 1] ?? null : null;
+  const nextNewsItem = activeNewsIndex >= 0 ? sortedNewsItems[activeNewsIndex + 1] ?? null : null;
+
+  const renderNewsRichText = (text: string, keyPrefix: string) => (
+    <>
+      {splitNewsRichText(text).map((segment, index) =>
+        segment.isPaperTitle ? (
+          <span
+            key={`${keyPrefix}-${index}`}
+            className={`mx-[0.08rem] inline rounded-md px-1 py-[0.03rem] font-semibold italic ${
+              isLightTheme
+                ? "bg-amber-100/95 text-amber-950"
+                : "bg-amber-300/16 text-amber-100"
+            }`}
+          >
+            {segment.text}
+          </span>
+        ) : (
+          <span key={`${keyPrefix}-${index}`}>{segment.text}</span>
+        ),
+      )}
+    </>
+  );
+
   const panelLinks = useMemo(() => {
     if (!infoNode) {
       return [];
@@ -568,10 +653,13 @@ export default function NeuralPortal() {
   return (
     <div className="h-full">
       <LayoutGroup id="yangs-portal-layout">
+        <div className={isMobile ? "flex h-full flex-col gap-3" : "grid h-full min-h-0 grid-cols-[minmax(0,1fr)_22rem] gap-3"}>
         <section
           ref={sectionRef}
           data-neural-portal
-          className={`relative h-full min-h-[26rem] overflow-hidden rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.35)] ${
+          className={`relative min-h-[26rem] overflow-hidden rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.35)] ${
+            isMobile ? "h-[58vh]" : "h-full"
+          } ${
             isLightTheme
               ? "border-slate-700/20 bg-[rgba(247,251,255,0.82)] shadow-[0_16px_38px_rgba(94,120,152,0.22)]"
               : "border-white/20 bg-[rgba(18,18,22,0.52)]"
@@ -639,7 +727,10 @@ export default function NeuralPortal() {
         </div>
       </motion.div>
 
-      <div ref={networkViewportRef} className="absolute inset-x-0 top-0 bottom-24">
+      <div
+        ref={networkViewportRef}
+        className="absolute inset-0"
+      >
       {layoutReady ? (
         <>
       <NetworkLayer
@@ -743,55 +834,6 @@ export default function NeuralPortal() {
       ) : null}
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.aside
-          key={infoNode?.id ?? "core"}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
-          className={`absolute bottom-2 left-1/2 z-40 w-[min(90vw,24rem)] -translate-x-1/2 rounded-2xl border p-3 backdrop-blur-md ${
-            isLightTheme
-              ? "border-slate-700/18 bg-[rgba(251,254,255,0.92)] shadow-[0_12px_26px_rgba(90,118,154,0.2)]"
-              : "border-zinc-100/18 bg-[rgba(24,24,28,0.82)]"
-          }`}
-          data-info-panel
-        >
-          <p className={`mb-1 text-sm font-semibold tracking-wide ${isLightTheme ? "text-slate-900" : "text-zinc-100"}`} data-info-panel-title>
-            {infoNode?.label ?? coreNode.label}
-          </p>
-          <p className={`mb-2 text-xs leading-relaxed ${isLightTheme ? "text-slate-700" : "text-zinc-300/92"}`}>
-            {infoNode?.shortDescription ?? coreNode.shortDescription}
-          </p>
-          {infoNode?.detailDescription && infoNode.detailDescription !== infoNode.shortDescription ? (
-            <p className={`mb-2 text-xs leading-relaxed ${isLightTheme ? "text-slate-600" : "text-zinc-400/92"}`}>{infoNode.detailDescription}</p>
-          ) : null}
-          {panelLinks.length > 0 ? (
-            <>
-              <p className={`mb-1 text-[0.65rem] uppercase tracking-[0.12em] ${isLightTheme ? "text-slate-600" : "text-zinc-300/64"}`}>Curated Links</p>
-              <div className="flex flex-wrap gap-2">
-                {panelLinks.map((link) => (
-                  <a
-                    key={`${link.label}-${link.href}`}
-                    href={link.href || "#"}
-                    target={link.external ? "_blank" : undefined}
-                    rel={link.external ? "noreferrer" : undefined}
-                    data-draft-link={link.draft || !link.href ? "true" : undefined}
-                    className={`rounded-xl border px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 ${
-                      isLightTheme
-                        ? "border-slate-700/24 bg-slate-100/80 text-slate-800 hover:bg-slate-200/80 focus-visible:ring-slate-700/60"
-                        : "border-zinc-100/24 bg-white/8 text-zinc-100 hover:bg-white/16 focus-visible:ring-zinc-200/85"
-                    }`}
-                  >
-                    {link.label}
-                  </a>
-                ))}
-              </div>
-            </>
-          ) : null}
-        </motion.aside>
-      </AnimatePresence>
-
       <button
         type="button"
         data-reset-layout
@@ -808,6 +850,289 @@ export default function NeuralPortal() {
         Reset Layout
       </button>
         </section>
+
+        <div className={isMobile ? "flex flex-col gap-3" : "flex min-h-0 flex-col gap-3"}>
+          {homeNewsItems.length > 0 ? (
+            <aside
+              className={`rounded-2xl border p-3 backdrop-blur-md ${
+                isLightTheme
+                  ? "border-amber-700/24 bg-[rgba(255,248,236,0.94)] shadow-[0_12px_26px_rgba(167,131,77,0.18)]"
+                  : "border-amber-200/20 bg-[rgba(34,26,16,0.78)]"
+              }`}
+              data-news-panel
+            >
+              <div className="mb-1 flex items-center justify-between">
+                <p className={`text-sm font-semibold tracking-wide ${isLightTheme ? "text-amber-900" : "text-amber-100"}`}>News</p>
+                {isMobile ? (
+                  <button
+                    type="button"
+                    onClick={() => setPanelOpen((prev) => ({ ...prev, news: !prev.news }))}
+                    className={`rounded-md border px-1.5 py-0.5 text-[0.62rem] uppercase tracking-[0.08em] ${
+                      isLightTheme ? "border-amber-800/30 text-amber-800" : "border-amber-100/30 text-amber-100"
+                    }`}
+                  >
+                    {panelOpen.news ? "Hide" : "Show"}
+                  </button>
+                ) : null}
+              </div>
+              {!isMobile || panelOpen.news ? <div className="space-y-1.5">
+                {latestNewsItems.map((item) => (
+                  <button
+                    key={`news-${item.id}`}
+                    type="button"
+                    onClick={() => setActiveNewsId(item.id)}
+                    className={`block w-full cursor-pointer rounded-lg border px-2.5 py-2 text-left text-xs transition-colors ${
+                      isLightTheme
+                        ? "border-amber-800/20 bg-amber-50/80 text-amber-900 hover:bg-amber-100/80"
+                        : "border-amber-100/20 bg-amber-200/8 text-amber-50 hover:bg-amber-200/14"
+                    }`}
+                  >
+                    <span className="font-medium">{item.title}</span>
+                    <span className={`mt-0.5 block text-[0.66rem] ${isLightTheme ? "text-amber-700" : "text-amber-100/70"}`}>
+                      {new Date(`${item.publishedOn}T00:00:00`).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "2-digit" })}
+                    </span>
+                  </button>
+                ))}
+                <a
+                  href="/news"
+                  className={`inline-block rounded-lg border px-2.5 py-1.5 text-[0.68rem] font-medium transition-colors ${
+                    isLightTheme
+                      ? "border-amber-800/20 bg-amber-50/70 text-amber-900 hover:bg-amber-100/80"
+                      : "border-amber-100/20 bg-amber-200/8 text-amber-50 hover:bg-amber-200/14"
+                  }`}
+                >
+                  View All News
+                </a>
+              </div> : null}
+            </aside>
+          ) : null}
+
+          {homeFeaturedLinks.length > 0 ? (
+            <aside
+              className={`rounded-2xl border p-3 backdrop-blur-md ${
+                isLightTheme
+                  ? "border-indigo-700/24 bg-[rgba(238,244,255,0.94)] shadow-[0_12px_26px_rgba(90,118,154,0.2)]"
+                  : "border-indigo-200/20 bg-[rgba(23,24,36,0.82)]"
+              }`}
+              data-featured-panel
+            >
+              <div className="mb-1 flex items-center justify-between">
+                <p className={`text-sm font-semibold tracking-wide ${isLightTheme ? "text-indigo-900" : "text-indigo-100"}`}>Featured</p>
+                {isMobile ? (
+                  <button
+                    type="button"
+                    onClick={() => setPanelOpen((prev) => ({ ...prev, featured: !prev.featured }))}
+                    className={`rounded-md border px-1.5 py-0.5 text-[0.62rem] uppercase tracking-[0.08em] ${
+                      isLightTheme ? "border-indigo-800/30 text-indigo-800" : "border-indigo-100/30 text-indigo-100"
+                    }`}
+                  >
+                    {panelOpen.featured ? "Hide" : "Show"}
+                  </button>
+                ) : null}
+              </div>
+              {!isMobile || panelOpen.featured ? <div className="flex flex-wrap gap-2">
+                {homeFeaturedLinks.map((link) => (
+                  <a
+                    key={`featured-${link.label}-${link.href}`}
+                    href={link.href || "#"}
+                    target={link.external ? "_blank" : undefined}
+                    rel={link.external ? "noreferrer" : undefined}
+                    data-draft-link={link.draft || !link.href ? "true" : undefined}
+                    className={`rounded-xl border px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 ${
+                      isLightTheme
+                        ? "border-indigo-700/24 bg-indigo-50/88 text-indigo-900 hover:bg-indigo-100/84 focus-visible:ring-indigo-700/60"
+                        : "border-indigo-100/24 bg-indigo-200/10 text-indigo-50 hover:bg-indigo-200/18 focus-visible:ring-indigo-100/70"
+                    }`}
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div> : null}
+            </aside>
+          ) : null}
+
+          <AnimatePresence mode="wait">
+            <motion.aside
+              key={infoNode?.id ?? "core"}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className={`rounded-2xl border p-3 backdrop-blur-md ${
+                isLightTheme
+                  ? "border-sky-700/24 bg-[rgba(244,250,255,0.94)] shadow-[0_12px_26px_rgba(90,118,154,0.2)]"
+                  : "border-sky-200/24 bg-[rgba(18,24,34,0.82)]"
+              }`}
+              data-info-panel
+            >
+              <div className="mb-1 flex items-center justify-between">
+                <p className={`text-sm font-semibold tracking-wide ${isLightTheme ? "text-sky-900" : "text-sky-100"}`} data-info-panel-title>
+                  {infoNode?.label ?? coreNode.label}
+                </p>
+                {isMobile ? (
+                  <button
+                    type="button"
+                    onClick={() => setPanelOpen((prev) => ({ ...prev, info: !prev.info }))}
+                    className={`rounded-md border px-1.5 py-0.5 text-[0.62rem] uppercase tracking-[0.08em] ${
+                      isLightTheme ? "border-sky-800/30 text-sky-800" : "border-sky-100/30 text-sky-100"
+                    }`}
+                  >
+                    {panelOpen.info ? "Hide" : "Show"}
+                  </button>
+                ) : null}
+              </div>
+              {!isMobile || panelOpen.info ? (
+                <>
+                  <p className={`mb-2 text-xs leading-relaxed ${isLightTheme ? "text-slate-700" : "text-zinc-300/92"}`}>
+                    {infoNode?.shortDescription ?? coreNode.shortDescription}
+                  </p>
+                  {infoNode?.detailDescription && infoNode.detailDescription !== infoNode.shortDescription ? (
+                    <p className={`mb-2 text-xs leading-relaxed ${isLightTheme ? "text-slate-600" : "text-zinc-400/92"}`}>{infoNode.detailDescription}</p>
+                  ) : null}
+                  {panelLinks.length > 0 ? (
+                <>
+                  <p className={`mb-1 text-[0.65rem] uppercase tracking-[0.12em] ${isLightTheme ? "text-slate-600" : "text-zinc-300/64"}`}>
+                    Curated Links
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {panelLinks.map((link) => (
+                      <a
+                        key={`${link.label}-${link.href}`}
+                        href={link.href || "#"}
+                        target={link.external ? "_blank" : undefined}
+                        rel={link.external ? "noreferrer" : undefined}
+                        data-draft-link={link.draft || !link.href ? "true" : undefined}
+                        className={`rounded-xl border px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 ${
+                          isLightTheme
+                            ? "border-sky-700/24 bg-sky-50/88 text-sky-900 hover:bg-sky-100/84 focus-visible:ring-sky-700/60"
+                            : "border-sky-100/24 bg-sky-200/10 text-sky-50 hover:bg-sky-200/18 focus-visible:ring-sky-100/70"
+                        }`}
+                      >
+                        {link.label}
+                      </a>
+                    ))}
+                  </div>
+                </>
+                  ) : null}
+                </>
+              ) : null}
+            </motion.aside>
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {activeNewsItem ? (
+            <motion.div
+              className="absolute inset-0 z-[120] flex items-center justify-center bg-[rgba(4,8,18,0.45)] px-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveNewsId(null)}
+            >
+              <motion.article
+                className={`w-[min(92vw,40rem)] rounded-2xl border p-4 ${
+                  isLightTheme
+                    ? "border-slate-700/20 bg-[rgba(252,254,255,0.98)] text-slate-900"
+                    : "border-zinc-100/18 bg-[rgba(22,24,32,0.96)] text-zinc-100"
+                }`}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 8, opacity: 0 }}
+                transition={{ duration: 0.16, ease: "easeOut" }}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <div>
+                    <p className={`text-[0.68rem] uppercase tracking-[0.12em] ${isLightTheme ? "text-slate-600" : "text-zinc-300/72"}`}>News</p>
+                    <h3 className="mt-1 text-lg font-semibold leading-snug">{activeNewsItem.title}</h3>
+                    <p className={`mt-1 text-xs ${isLightTheme ? "text-slate-600" : "text-zinc-300/72"}`}>
+                      {new Date(`${activeNewsItem.publishedOn}T00:00:00`).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={!previousNewsItem}
+                      onClick={() => setActiveNewsId(previousNewsItem?.id ?? null)}
+                      className={`rounded-lg border px-2.5 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                        isLightTheme
+                          ? "border-slate-700/24 bg-slate-100/90 text-slate-800 hover:bg-slate-200/80"
+                          : "border-zinc-100/24 bg-white/8 text-zinc-100 hover:bg-white/14"
+                      }`}
+                    >
+                      Newer
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!nextNewsItem}
+                      onClick={() => setActiveNewsId(nextNewsItem?.id ?? null)}
+                      className={`rounded-lg border px-2.5 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                        isLightTheme
+                          ? "border-slate-700/24 bg-slate-100/90 text-slate-800 hover:bg-slate-200/80"
+                          : "border-zinc-100/24 bg-white/8 text-zinc-100 hover:bg-white/14"
+                      }`}
+                    >
+                      Older
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveNewsId(null)}
+                      className={`rounded-md border px-2 py-1 text-xs ${
+                        isLightTheme
+                          ? "border-slate-700/24 bg-slate-100/90 text-slate-800 hover:bg-slate-200/80"
+                          : "border-zinc-100/24 bg-white/8 text-zinc-100 hover:bg-white/14"
+                      }`}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className={`mb-3 rounded-xl border px-3 py-2.5 text-[0.94rem] leading-relaxed ${
+                    isLightTheme
+                      ? "border-sky-700/18 bg-sky-50/80 text-slate-800"
+                      : "border-sky-100/20 bg-sky-300/8 text-zinc-100"
+                  }`}
+                >
+                  {renderNewsRichText(activeNewsItem.summary, `${activeNewsItem.id}-summary`)}
+                </div>
+                <div
+                  className={`space-y-2 border-t pt-2 ${
+                    isLightTheme ? "border-slate-700/12" : "border-zinc-100/10"
+                  }`}
+                >
+                  {activeNewsItem.body.map((paragraph, index) => (
+                    <p
+                      key={`${activeNewsItem.id}-p-${index}`}
+                      className={`text-sm leading-relaxed ${isLightTheme ? "text-slate-700" : "text-zinc-200"}`}
+                    >
+                      {renderNewsRichText(paragraph, `${activeNewsItem.id}-body-${index}`)}
+                    </p>
+                  ))}
+                </div>
+                {activeNewsItem.ctaHref ? (
+                  <a
+                    href={activeNewsItem.ctaHref}
+                    target={activeNewsItem.ctaExternal ? "_blank" : undefined}
+                    rel={activeNewsItem.ctaExternal ? "noreferrer" : undefined}
+                    className={`mt-3 inline-block rounded-lg border px-3 py-1.5 text-xs ${
+                      isLightTheme
+                        ? "border-sky-700/24 bg-sky-50/88 text-sky-900 hover:bg-sky-100/84"
+                        : "border-sky-100/24 bg-sky-200/10 text-sky-50 hover:bg-sky-200/18"
+                    }`}
+                  >
+                    {activeNewsItem.ctaLabel ?? "Read More"}
+                  </a>
+                ) : null}
+              </motion.article>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+        </div>
       </LayoutGroup>
     </div>
   );

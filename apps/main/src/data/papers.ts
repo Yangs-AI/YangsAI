@@ -1,3 +1,5 @@
+import type { VenueKey } from "./venueMap";
+
 export interface PaperAuthor {
   name: string;
   // Optional per-paper explicit profile/homepage link.
@@ -17,7 +19,7 @@ export const authorLinks: Record<string, string> = {
 export interface PaperEntry {
   id: string;
   title: string;
-  venue: string;
+  venue: VenueKey;
   publishedOn: string;
   authors: PaperAuthor[];
   bibtex?: string;
@@ -176,7 +178,7 @@ author = {Yunyou Huang and Wenjing Liu and Wanling Gao and Xiangjiang Lu and Xia
   {
     id: "evaluatology-perspective-ai-evaluation-critical-scenarios",
     title: "Evaluatology's perspective on AI evaluation in critical scenarios: From tail quality to landscape",
-    venue: "BenchCouncil Transactions on Benchmarks, Standards and Evaluations",
+    venue: "TBench",
     publishedOn: "2025-04-28",
     authors: [{ name: "Zhengxin Yang", isFirstAuthor: true }],
     paperUrl: "https://www.sciencedirect.com/science/article/pii/S277248592500016X",
@@ -359,6 +361,7 @@ author = {张知非 and 杨郑鑫 and 黄运有 and 詹剑锋}
     title: "Uyghur-to-Chinese Neural Machine Translation Based on Incremental Training",
     venue: "JXMU",
     publishedOn: "2019-03-28",
+    paperUrl: "http://dx.doi.org/10.6043/j.issn.0438-0479.201811019",
     authors: [
       { name: "Zhengxin Yang", isFirstAuthor: true },
       { name: "Jingyu Li" },

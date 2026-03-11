@@ -9,6 +9,8 @@ export interface NodeLink {
   label: string;
   href: string;
   external?: boolean;
+  showExternalIndicator?: boolean;
+  activeMatch?: "exact" | "prefix";
   draft?: boolean;
 }
 
@@ -16,6 +18,8 @@ export interface SubItemLink {
   label: string;
   href: string;
   external?: boolean;
+  showExternalIndicator?: boolean;
+  activeMatch?: "exact" | "prefix";
   draft?: boolean;
 }
 
@@ -51,7 +55,7 @@ export const portalNodes: PortalNode[] = [
     positionDesktop: { x: 86, y: 76 },
     positionMobile: { x: 82, y: 76 },
     subItems: [
-      { label: "About", href: "/team" },
+      { label: "About", href: "/team", activeMatch: "exact" },
       { label: "Members", href: "/team/members" },
     ],
     links: [
@@ -68,7 +72,7 @@ export const portalNodes: PortalNode[] = [
     positionDesktop: { x: 18, y: 21 },
     positionMobile: { x: 24, y: 16 },
     subItems: [
-      { label: "About", href: "/research" },
+      { label: "About", href: "/research", activeMatch: "exact" },
       { label: "Papers", href: "/research/papers" },
       { label: "Projects", href: "/research/projects" },
       { label: "Directions", href: "/research/directions" },
@@ -88,13 +92,13 @@ export const portalNodes: PortalNode[] = [
     positionDesktop: { x: 33, y: 46 },
     positionMobile: { x: 21, y: 52 },
     subItems: [
-      { label: "About", href: "/community" },
+      { label: "About", href: "/community", activeMatch: "exact" },
       { label: "Journals", href: "/community/journals" , draft: true },
       { label: "Organizations", href: "/community/organizations" , draft: true },
     ],
     links: [
       { label: "Communications of the BenchCouncil", href: "/community/journals/cbench" , draft: true },
-      { label: "Yangs AI on GitHub", href: "https://github.com/yangs-ai", external: true },
+      { label: "Yangs AI on GitHub", href: "https://github.com/yangs-ai", external: true, showExternalIndicator: true },
     ],
   },
   {
@@ -125,6 +129,7 @@ export const portalNodes: PortalNode[] = [
         label: "FRESH Documentation",
         href: "https://fresh.research.jason-young.me",
         external: true,
+        showExternalIndicator: true,
       }
     ],
   },
@@ -137,7 +142,7 @@ export const portalNodes: PortalNode[] = [
     positionDesktop: { x: 14, y: 84 },
     positionMobile: { x: 26, y: 82 },
     subItems: [
-        { label: "YANG Zhengxin", href: "https://jason-young.me", external: true },
+      { label: "YANG Zhengxin", href: "https://jason-young.me", external: true, showExternalIndicator: true },
     ],
     links: [
     ],

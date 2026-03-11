@@ -8,7 +8,7 @@ studentLevel: "phd"
 graduated: false
 extraPublications:
   - title: "A Linear Combination-Based Method to Construct Proxy Benchmarks for Big Data Workloads"
-    venue: "Bench 2023"
+    venue: "Bench"
     publishedOn: "2024-02-14"
     authors:
       - name: "Yikang Yang"
@@ -37,7 +37,7 @@ extraPublications:
 order: 1
 # avatar: "/images/team/sample-yang-yikang.svg"
 email: "yangyikang23s@ict.ac.cn"
-updatedOn: "2026-03-08"
+updatedOn: "2026-03-11"
 ---
 
 ## Profile

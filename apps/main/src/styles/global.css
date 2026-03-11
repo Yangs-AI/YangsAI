@@ -239,6 +239,18 @@ html[data-theme="light"] [data-site-header] .hover\:bg-white\/10:hover {
 	background-color: rgba(15, 23, 42, 0.1) !important;
 }
 
+html[data-theme="light"] [data-site-header] [data-nav-item][data-active="true"] {
+	border-color: rgba(30, 64, 175, 0.42) !important;
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #1e3a8a !important;
+	box-shadow: 0 7px 16px rgba(92, 128, 178, 0.2);
+}
+
+html[data-theme="light"] [data-site-header] [data-nav-news][data-active="false"]:hover {
+	background: rgba(59, 130, 246, 0.2) !important;
+	border-color: rgba(30, 64, 175, 0.42) !important;
+}
+
 html[data-theme="light"] [data-site-header-controls] .site-nav-desktop > .group > button:hover,
 html[data-theme="light"] [data-site-header-controls] .site-nav-desktop > a:hover,
 html[data-theme="light"] [data-theme-toggle]:hover {
@@ -339,10 +351,10 @@ html[data-theme="light"] [data-member-tag="status"] {
 }
 
 html[data-theme="light"] [data-member-content] {
-	border-color: rgba(23, 33, 47, 0.16) !important;
-	background: rgba(250, 253, 255, 0.88) !important;
+	border-color: transparent !important;
+	background: transparent !important;
 	color: #1f2937 !important;
-	box-shadow: 0 10px 24px rgba(102, 127, 162, 0.14);
+	box-shadow: none !important;
 }
 
 html[data-theme="light"] [data-member-content] h2 {

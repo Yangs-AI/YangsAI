@@ -5,6 +5,7 @@ import BackButton from "../../../components/BackButton.astro";
 import PaperList from "../../../components/PaperList.astro";
 import { papers } from "../../../data/papers";
 import type { PaperEntry, PaperAuthor } from "../../../data/papers";
+import { resolveVenueKey } from "../../../data/venueMap";
 
 type StudentLevel = "undergraduate" | "master" | "phd";
 
@@ -86,7 +87,7 @@ const extraPublications = (data as MemberData).extraPublications ?? [];
 const extraMemberPapers: PaperEntry[] = extraPublications.map((paper, index) => ({
   id: `extra-${slug}-${index + 1}`,
   title: paper.title,
-  venue: paper.venue ?? "Member Update",
+  venue: resolveVenueKey(paper.venue) ?? "Other",
   publishedOn: paper.publishedOn ?? updatedOn ?? "1970-01-01",
   authors: paper.authors,
   paperUrl: paper.paperUrl,
