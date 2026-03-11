@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Younger Benchmark artwork">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#66b8ac" stop-opacity="0.32" />
+      <stop offset="100%" stop-color="#2d6f73" stop-opacity="0.22" />
+    </linearGradient>
+    <radialGradient id="glow" cx="16%" cy="8%" r="74%">
+      <stop offset="0%" stop-color="#e9fbf7" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="720" fill="#0f1f28" />
+  <rect width="1200" height="720" fill="url(#bg)" />
+  <rect width="1200" height="720" fill="url(#glow)" />
+
+  <g fill="none" stroke="#ddf4ef" stroke-opacity="0.24" stroke-width="2">
+    <path d="M 70 540 Q 260 400 470 520 T 890 520 T 1160 500" />
+    <path d="M 60 620 Q 280 560 520 620 T 980 620" />
+    <circle cx="890" cy="250" r="130" />
+    <circle cx="890" cy="250" r="78" />
+  </g>
+
+  <g fill="none" stroke="#8dd5c9" stroke-opacity="0.44" stroke-width="2.4">
+    <path d="M 184 162 H 438 V 442 H 184 Z" />
+    <path d="M 244 222 H 378 V 382 H 244 Z" />
+    <path d="M 438 302 H 620" />
+    <path d="M 620 302 C 680 302, 740 260, 800 302 C 860 344, 920 302, 980 302" />
+  </g>
+
+  <g fill="#c7f2e8" fill-opacity="0.22">
+    <circle cx="618" cy="302" r="10" />
+    <circle cx="712" cy="278" r="10" />
+    <circle cx="804" cy="316" r="10" />
+    <circle cx="900" cy="292" r="10" />
+  </g>
+</svg>

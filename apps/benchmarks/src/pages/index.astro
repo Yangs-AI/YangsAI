@@ -32,7 +32,7 @@ const benchmarkCards: BenchmarkCard[] = [
 	{
 		title: "Probing Memes",
 		thumb: "PM",
-		image: "/images/benchmarks/probing-memes-overview.png",
+		image: "/images/benchmarks/PMP.svg",
 		palette: ["#77a6d8", "#3c5f85"],
 		description:
 			"Leaderboard and analysis platform for the Probing Memes paradigm, evaluating large language models through population-level probing.",
@@ -42,7 +42,7 @@ const benchmarkCards: BenchmarkCard[] = [
 	{
 		title: "Younger Benchmark",
 		thumb: "YB",
-		image: "/images/benchmarks/younger-benchmark-placeholder.svg",
+		image: "/images/benchmarks/benchmark-card-younger.svg",
 		palette: ["#68b9ac", "#2f6f73"],
 		description:
 			"Younger Benchmark evaluates the capability of AI systems to understand and construct other AI systems, a foundational ability for Artificial Intelligence Designed Artificial Intelligence (AIDAI).",
@@ -159,12 +159,24 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 					<img src="/brand/favicon-32x32.png" alt="YangsAI logo" class="brand-icon" />
 					<img src="/brand/yangs-ai-wordmark.svg" alt="Yangs AI" class="brand-wordmark" />
 				</a>
-				<nav class="header-nav" aria-label="Yangs AI links">
-					{headerNavItems.map((item) => (
-						<a class={`nav-link font-tech${item.emphasized ? " nav-link-main" : ""}`} href={item.href}>
-							{item.label}
-						</a>
-					))}
+				<div class="header-controls">
+					<nav class="header-nav header-nav-desktop" aria-label="Yangs AI links">
+						{headerNavItems.map((item) => (
+							<a class={`nav-link font-tech${item.emphasized ? " nav-link-main" : ""}`} href={item.href}>
+								{item.label}
+							</a>
+						))}
+					</nav>
+					<details class="header-nav-mobile">
+						<summary class="nav-link font-tech">Menu</summary>
+						<div class="header-nav-mobile-panel" aria-label="Yangs AI links">
+							{headerNavItems.map((item) => (
+								<a class={`nav-link font-tech${item.emphasized ? " nav-link-main" : ""}`} href={item.href}>
+									{item.label}
+								</a>
+							))}
+						</div>
+					</details>
 					<button
 						type="button"
 						class="theme-toggle nav-link font-tech"
@@ -189,7 +201,7 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 						</span>
 						<span class="theme-toggle-label sr-only" data-theme-toggle-label>Toggle theme</span>
 					</button>
-				</nav>
+				</div>
 			</div>
 		</header>
 
@@ -205,22 +217,28 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 
 					<div class="cards">
 						{benchmarkCardsWithThumb.map((card) => (
-							<a
+							<article
 								class="card"
-								href={card.href}
-								target={card.status === "upcoming" ? undefined : "_blank"}
-								rel={card.status === "upcoming" ? undefined : "noreferrer"}
-								aria-label={`Open ${card.title}`}
 								data-benchmark-status={card.status}
 							>
-								<span class="card-thumb" aria-hidden="true">
-									<img
-										src={card.thumbSrc}
-										alt=""
-										loading="lazy"
-										decoding="async"
-										data-fallback-src={card.fallbackThumb}
-									/>
+								<span class="card-thumb-wrap">
+									<button type="button" class="card-thumb-trigger" aria-label={`Preview image for ${card.title}`}>
+										<span class="card-thumb">
+											<img
+												src={card.thumbSrc}
+												alt=""
+												loading="lazy"
+												decoding="async"
+												data-fallback-src={card.fallbackThumb}
+											/>
+										</span>
+										<span class="card-thumb-zoom-hint" aria-hidden="true">
+											<svg viewBox="0 0 24 24" fill="none" role="presentation">
+												<circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+												<path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+											</svg>
+										</span>
+									</button>
 								</span>
 								<div class="card-body">
 									<h2 class="font-tech card-title">{card.title}</h2>
@@ -231,9 +249,17 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 										{benchmarkStatusMeta[card.status].short}
 									</span>
 									<p class="card-description">{card.description}</p>
-									<p class="card-cta">{card.status === "upcoming" ? "Under Development" : "Visit Track"}</p>
+									{card.status === "upcoming" ? (
+										<button type="button" class="card-cta" data-upcoming-trigger>
+											Under Development
+										</button>
+									) : (
+										<a href={card.href} target="_blank" rel="noreferrer" class="card-cta" aria-label={`Open ${card.title}`}>
+											View Track
+										</a>
+									)}
 								</div>
-							</a>
+							</article>
 						))}
 					</div>
 				</section>
@@ -255,12 +281,18 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 			</div>
 		</div>
 
+		<div id="image-preview-overlay" class="image-preview-overlay" aria-hidden="true">
+			<img data-image-preview src="" alt="" decoding="async" />
+		</div>
+
 		<script>
 			const THEME_KEY = "yangsai-theme";
 			type ThemeMode = "light" | "dark";
 			const themeToggle = document.querySelector("[data-theme-toggle]");
 			const themeLabel = document.querySelector("[data-theme-toggle-label]");
 			const upcomingOverlay = document.getElementById("upcoming-overlay");
+			const imagePreviewOverlay = document.getElementById("image-preview-overlay");
+			const imagePreviewImage = imagePreviewOverlay?.querySelector("[data-image-preview]");
 
 			const getTheme = (): ThemeMode => document.documentElement.dataset.theme === "light" ? "light" : "dark";
 
@@ -321,8 +353,8 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 				const target = event.target;
 				if (!(target instanceof Element)) return;
 
-				const upcomingCard = target.closest('[data-benchmark-status="upcoming"]');
-				if (upcomingCard) {
+				const upcomingTrigger = target.closest("[data-upcoming-trigger]");
+				if (upcomingTrigger) {
 					event.preventDefault();
 					showUpcomingNotice();
 					return;
@@ -341,8 +373,44 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 			document.addEventListener("keydown", (event) => {
 				if (event.key === "Escape") {
 					hideUpcomingNotice();
+					hideImagePreview();
 				}
 			});
+
+			const hideImagePreview = () => {
+				if (!(imagePreviewOverlay instanceof HTMLElement)) return;
+				imagePreviewOverlay.classList.remove("is-visible");
+				imagePreviewOverlay.setAttribute("aria-hidden", "true");
+			};
+
+			const showImagePreview = (src: string) => {
+				if (!(imagePreviewOverlay instanceof HTMLElement) || !(imagePreviewImage instanceof HTMLImageElement)) return;
+				if (!src) return;
+				imagePreviewImage.setAttribute("src", src);
+				imagePreviewOverlay.classList.add("is-visible");
+				imagePreviewOverlay.setAttribute("aria-hidden", "false");
+			};
+
+			document.addEventListener("click", (event) => {
+				const target = event.target;
+				if (!(target instanceof Element)) return;
+
+				const imageTrigger = target.closest(".card-thumb-trigger");
+				if (imageTrigger instanceof HTMLElement) {
+					event.preventDefault();
+					const sourceImage = imageTrigger.querySelector(".card-thumb img");
+					if (sourceImage instanceof HTMLImageElement) {
+						showImagePreview(sourceImage.currentSrc || sourceImage.src);
+					}
+					return;
+				}
+
+				if (target.id === "image-preview-overlay") {
+					hideImagePreview();
+				}
+			});
+
+			window.addEventListener("blur", hideImagePreview);
 
 			document.querySelectorAll(".card-thumb img").forEach((img) => {
 				img.addEventListener("error", () => {
