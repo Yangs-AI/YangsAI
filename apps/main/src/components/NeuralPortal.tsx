@@ -159,7 +159,12 @@ function isValidPlacement(
 }
 
 function useIsMobile(breakpoint = 768) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.matchMedia(`(max-width: ${breakpoint}px)`).matches;
+  });
 
   useEffect(() => {
     const media = window.matchMedia(`(max-width: ${breakpoint}px)`);
@@ -174,7 +179,7 @@ function useIsMobile(breakpoint = 768) {
 
 export default function NeuralPortal() {
   const reduceMotion = useReducedMotion();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(1200);
   const [lowPerformanceMode, setLowPerformanceMode] = useState(false);
   const [hoveredNodeId, setHoveredNodeId] = useState<PortalNodeId | null>(null);
   const [activeNodeId, setActiveNodeId] = useState<PortalNodeId | null>(null);
@@ -183,7 +188,7 @@ export default function NeuralPortal() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const networkViewportRef = useRef<HTMLDivElement | null>(null);
   const [containerAspectRatio, setContainerAspectRatio] = useState(1);
-  const [layoutReady, setLayoutReady] = useState(false);
+  const [layoutHydrated, setLayoutHydrated] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
   const [panelOpen, setPanelOpen] = useState({ news: false, featured: false, info: true });
   const [activeNewsId, setActiveNewsId] = useState<string | null>(null);
@@ -203,8 +208,8 @@ export default function NeuralPortal() {
     moved: boolean;
   } | null>(null);
 
-  const [nodePositions, setNodePositions] = useState<NodePositionMap>(() => getDefaultLayout(false));
-  const [corePosition, setCorePosition] = useState<CorePosition>({ x: 50, y: 50 });
+  const [nodePositions, setNodePositions] = useState<NodePositionMap>(() => getDefaultLayout(isMobile));
+  const [corePosition, setCorePosition] = useState<CorePosition>(() => getDefaultCorePosition(isMobile));
 
   useEffect(() => {
     const syncTheme = () => {
@@ -251,7 +256,7 @@ export default function NeuralPortal() {
   }, []);
 
   useEffect(() => {
-    setLayoutReady(false);
+    setLayoutHydrated(false);
     const storageKey = getLayoutStorageKey(isMobile);
     const coreStorageKey = getCoreStorageKey(isMobile);
     const fallback = getDefaultLayout(isMobile);
@@ -287,18 +292,18 @@ export default function NeuralPortal() {
 
     setNodePositions(nextPositions);
     setCorePosition(nextCore);
-    setLayoutReady(true);
+    setLayoutHydrated(true);
   }, [isMobile]);
 
   useEffect(() => {
-    if (!layoutReady) {
+    if (!layoutHydrated) {
       return;
     }
     const storageKey = getLayoutStorageKey(isMobile);
     const coreStorageKey = getCoreStorageKey(isMobile);
     window.localStorage.setItem(storageKey, JSON.stringify(nodePositions));
     window.localStorage.setItem(coreStorageKey, JSON.stringify(corePosition));
-  }, [nodePositions, corePosition, isMobile, layoutReady]);
+  }, [nodePositions, corePosition, isMobile, layoutHydrated]);
 
   useEffect(() => {
     if (isMobile) {
@@ -651,14 +656,14 @@ export default function NeuralPortal() {
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full min-h-0">
       <LayoutGroup id="yangs-portal-layout">
-        <div className={isMobile ? "flex h-full flex-col gap-3" : "grid h-full min-h-0 grid-cols-[minmax(0,1fr)_22rem] gap-3"}>
+        <div className={isMobile ? "flex w-full flex-col gap-3" : "grid h-full min-h-0 grid-cols-[minmax(0,1fr)_22rem] gap-3"}>
         <section
           ref={sectionRef}
           data-neural-portal
-          className={`relative min-h-[26rem] overflow-hidden rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.35)] ${
-            isMobile ? "h-[58vh]" : "h-full"
+          className={`relative w-full min-h-[26rem] overflow-hidden rounded-2xl border shadow-[0_10px_40px_rgba(0,0,0,0.35)] ${
+            isMobile ? "h-[46vh] min-h-[18rem] shrink-0" : "h-full"
           } ${
             isLightTheme
               ? "border-slate-700/20 bg-[rgba(247,251,255,0.82)] shadow-[0_16px_38px_rgba(94,120,152,0.22)]"
@@ -731,7 +736,6 @@ export default function NeuralPortal() {
         ref={networkViewportRef}
         className="absolute inset-0"
       >
-      {layoutReady ? (
         <>
       <NetworkLayer
         nodes={portalNodes}
@@ -831,7 +835,6 @@ export default function NeuralPortal() {
         </span>
       </motion.div>
       </>
-      ) : null}
       </div>
 
       <button
@@ -851,7 +854,7 @@ export default function NeuralPortal() {
       </button>
         </section>
 
-        <div className={isMobile ? "flex flex-col gap-3" : "flex min-h-0 flex-col gap-3"}>
+        <div className={isMobile ? "flex w-full flex-col gap-3 pb-2" : "flex min-h-0 flex-col gap-3"}>
           {homeNewsItems.length > 0 ? (
             <aside
               className={`rounded-2xl border p-3 backdrop-blur-md ${
@@ -962,7 +965,7 @@ export default function NeuralPortal() {
                 isLightTheme
                   ? "border-sky-700/24 bg-[rgba(244,250,255,0.94)] shadow-[0_12px_26px_rgba(90,118,154,0.2)]"
                   : "border-sky-200/24 bg-[rgba(18,24,34,0.82)]"
-              }`}
+              } ${isMobile ? "" : "h-[23rem] overflow-y-auto"}`}
               data-info-panel
             >
               <div className="mb-1 flex items-center justify-between">
@@ -1018,6 +1021,53 @@ export default function NeuralPortal() {
               ) : null}
             </motion.aside>
           </AnimatePresence>
+
+          <aside
+            className={`rounded-2xl border p-3 backdrop-blur-md ${
+              isLightTheme
+                ? "border-emerald-700/24 bg-[rgba(236,252,248,0.94)] shadow-[0_12px_26px_rgba(86,145,126,0.18)]"
+                : "border-emerald-200/20 bg-[rgba(19,34,30,0.8)]"
+            }`}
+            data-thanks-panel
+          >
+            <div className="mb-1.5 flex items-center justify-between">
+              <p className={`text-sm font-semibold tracking-wide ${isLightTheme ? "text-emerald-900" : "text-emerald-100"}`}>Thanks</p>
+              <span className={`rounded-md border px-1.5 py-0.5 text-[0.62rem] uppercase tracking-[0.08em] ${isLightTheme ? "border-emerald-800/24 text-emerald-800" : "border-emerald-100/26 text-emerald-100/90"}`}>
+                Note
+              </span>
+            </div>
+            <p className={`mb-2 text-xs leading-relaxed ${isLightTheme ? "text-emerald-800" : "text-emerald-50/90"}`}>
+              {isMobile
+                ? "Acknowledgement to Prof. Jianfeng Zhan for mentorship and support."
+                : "Acknowledgement to Prof. Jianfeng Zhan for mentorship and support that made this research journey possible."}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href="/thanks"
+                className={`rounded-xl border px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 ${
+                  isLightTheme
+                    ? "border-emerald-700/24 bg-emerald-50/88 text-emerald-900 hover:bg-emerald-100/84 focus-visible:ring-emerald-700/60"
+                    : "border-emerald-100/24 bg-emerald-200/10 text-emerald-50 hover:bg-emerald-200/18 focus-visible:ring-emerald-100/70"
+                }`}
+              >
+                Read Thanks
+              </a>
+              {!isMobile ? (
+                <a
+                  href="https://www.zhanjianfeng.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`rounded-xl border px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 ${
+                    isLightTheme
+                      ? "border-emerald-700/24 bg-emerald-50/88 text-emerald-900 hover:bg-emerald-100/84 focus-visible:ring-emerald-700/60"
+                      : "border-emerald-100/24 bg-emerald-200/10 text-emerald-50 hover:bg-emerald-200/18 focus-visible:ring-emerald-100/70"
+                  }`}
+                >
+                  Prof. Zhan Website
+                </a>
+              ) : null}
+            </div>
+          </aside>
         </div>
 
         <AnimatePresence>

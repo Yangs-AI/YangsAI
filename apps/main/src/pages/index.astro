@@ -36,9 +36,9 @@ import SiteFooter from "../components/SiteFooter.astro";
 			content="Official Yangs AI website: research, datasets, benchmarks, and initiatives for fundamental AI."
 		/>
 	</head>
-	<body class="flex h-screen flex-col overflow-hidden bg-transparent">
+	<body class="flex min-h-screen flex-col overflow-x-hidden overflow-y-auto bg-transparent xl:h-screen xl:overflow-hidden">
 		<SiteHeader />
-		<main class="mx-auto flex-1 min-h-0 w-full max-w-[1320px] px-2 pt-1 pb-3 md:px-6 md:pt-2 md:pb-4">
+		<main class="mx-auto w-full max-w-[1320px] px-2 pt-1 pb-3 md:px-6 md:pt-2 md:pb-4 xl:flex-1 xl:min-h-0">
 			<NeuralPortal client:load />
 		</main>
 		<SiteFooter />

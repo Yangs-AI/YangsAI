@@ -79,7 +79,20 @@ body {
 	display: block;
 }
 
-@media (min-width: 768px) {
+[data-mobile-top-link] > summary::-webkit-details-marker {
+	display: none;
+}
+
+[data-mobile-top-link] > summary::marker {
+	content: "";
+	display: none;
+}
+
+[data-mobile-top-link][open] > summary {
+	background: inherit;
+}
+
+@media (min-width: 1200px) {
 	.site-nav-desktop {
 		display: flex;
 	}
@@ -234,21 +247,119 @@ html[data-theme="light"] [data-site-header] [data-mobile-submenu] {
 	background: rgba(236, 244, 252, 0.62) !important;
 }
 
+html[data-theme="light"] [data-site-header] [data-mobile-top-link] {
+	border-color: rgba(23, 33, 47, 0.18) !important;
+	background: rgba(236, 244, 252, 0.62) !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] details[data-mobile-submenu] > summary[data-nav-item] {
+	color: #1f2937 !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item] {
+	color: #334155 !important;
+	background: transparent !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item]:hover {
+	background: rgba(15, 23, 42, 0.08) !important;
+	color: #1f2937 !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item][data-active="true"] {
+	position: relative;
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #1e3a8a !important;
+	box-shadow: 0 6px 14px rgba(92, 128, 178, 0.16) !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item][data-active="true"]::before {
+	content: "";
+	position: absolute;
+	left: 0.38rem;
+	top: 0.36rem;
+	bottom: 0.36rem;
+	width: 2px;
+	border-radius: 999px;
+	background: rgba(30, 64, 175, 0.92);
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] details[data-mobile-submenu] details[data-mobile-submenu] > summary {
+	color: #334155 !important;
+}
+
+html[data-theme="dark"] [data-mobile-menu-panel] details[data-mobile-submenu] > summary[data-nav-item] {
+	color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item] {
+	color: #d1d5db !important;
+	background: transparent !important;
+}
+
+html[data-theme="dark"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item]:hover {
+	background: rgba(255, 255, 255, 0.08) !important;
+	color: #f3f4f6 !important;
+}
+
+html[data-theme="dark"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item][data-active="true"] {
+	position: relative;
+	background: rgba(186, 230, 253, 0.18) !important;
+	color: #e0f2fe !important;
+	box-shadow: 0 6px 14px rgba(2, 132, 199, 0.2) !important;
+}
+
+html[data-theme="dark"] [data-mobile-menu-panel] details[data-mobile-submenu] > div a[data-nav-item][data-active="true"]::before {
+	content: "";
+	position: absolute;
+	left: 0.38rem;
+	top: 0.36rem;
+	bottom: 0.36rem;
+	width: 2px;
+	border-radius: 999px;
+	background: rgba(186, 230, 253, 0.92);
+}
+
+html[data-theme="dark"] [data-mobile-menu-panel] details[data-mobile-submenu] details[data-mobile-submenu] > summary {
+	color: #d1d5db !important;
+}
+
 html[data-theme="light"] [data-site-header] .hover\:bg-white\/8:hover,
 html[data-theme="light"] [data-site-header] .hover\:bg-white\/10:hover {
 	background-color: rgba(15, 23, 42, 0.1) !important;
 }
 
-html[data-theme="light"] [data-site-header] [data-nav-item][data-active="true"] {
+html[data-theme="light"] [data-site-header-controls] .site-nav-desktop [data-nav-item][data-active="true"] {
 	border-color: rgba(30, 64, 175, 0.42) !important;
 	background: rgba(59, 130, 246, 0.2) !important;
 	color: #1e3a8a !important;
 	box-shadow: 0 7px 16px rgba(92, 128, 178, 0.2);
 }
 
-html[data-theme="light"] [data-site-header] [data-nav-news][data-active="false"]:hover {
+html[data-theme="light"] [data-site-header-controls] .site-nav-desktop [data-nav-news][data-active="false"]:hover {
 	background: rgba(59, 130, 246, 0.2) !important;
 	border-color: rgba(30, 64, 175, 0.42) !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] > details[data-mobile-top-link] > summary[data-nav-item],
+html[data-theme="light"] [data-mobile-menu-panel] > details[data-mobile-top-link] > summary[data-nav-item][data-active="true"],
+html[data-theme="light"] [data-mobile-menu-panel] > details[data-mobile-top-link] > summary[data-nav-item][data-active="false"] {
+	border-color: transparent !important;
+	background: transparent !important;
+	color: #1f2937 !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] > details[data-mobile-top-link] > summary[data-nav-item][data-active="true"],
+html[data-theme="light"] [data-mobile-menu-panel] > details[data-mobile-submenu] > summary[data-nav-item][data-active="true"] {
+	background: rgba(59, 130, 246, 0.2) !important;
+	color: #1e3a8a !important;
+	box-shadow: 0 6px 14px rgba(92, 128, 178, 0.18) !important;
+}
+
+html[data-theme="light"] [data-mobile-menu-panel] > details[data-mobile-top-link] > summary[data-nav-item]:hover {
+	background: rgba(15, 23, 42, 0.1) !important;
+	color: #0f172a !important;
 }
 
 html[data-theme="light"] [data-site-header-controls] .site-nav-desktop > .group > button:hover,
@@ -453,6 +564,40 @@ html[data-theme="light"] [data-student-level-group] {
 
 html[data-theme="light"] footer {
 	color: #475569 !important;
+}
+
+[data-info-panel]::-webkit-scrollbar {
+	width: 0;
+	height: 0;
+}
+
+[data-info-panel]::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+[data-info-panel]::-webkit-scrollbar-thumb {
+	background: rgba(148, 163, 184, 0.55);
+	border-radius: 999px;
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+
+[data-info-panel]::-webkit-scrollbar-thumb:hover {
+	background: rgba(148, 163, 184, 0.75);
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+
+html[data-theme="light"] [data-info-panel]::-webkit-scrollbar-thumb {
+	background: rgba(100, 116, 139, 0.42);
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+
+html[data-theme="light"] [data-info-panel]::-webkit-scrollbar-thumb:hover {
+	background: rgba(100, 116, 139, 0.62);
+	border: 2px solid transparent;
+	background-clip: content-box;
 }
 
 @media (prefers-reduced-motion: reduce) {

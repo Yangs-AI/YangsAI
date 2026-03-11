@@ -47,6 +47,7 @@ const isNodeActive = (node: (typeof portalNodes)[number]) => {
 
 const isHomeActive = isPathActive("/", "exact");
 const isNewsActive = isPathActive("/news", "prefix");
+const isThanksActive = isPathActive("/thanks", "prefix");
 
 ---
 
@@ -164,6 +165,15 @@ const isNewsActive = isPathActive("/news", "prefix");
           );
         })()
       ))}
+        <a
+          href="/thanks"
+          data-nav-item
+          data-nav-thanks
+          data-active={isThanksActive ? "true" : "false"}
+          class={`font-tech inline-flex h-9 cursor-pointer items-center rounded-lg border px-3 py-2 text-xs uppercase leading-none tracking-[0.12em] transition-colors ${isThanksActive ? "border-sky-200/70 bg-sky-200/22 text-sky-100" : "border-white/14 bg-white/4 text-zinc-200 hover:bg-white/10"}`}
+        >
+          Thanks
+        </a>
       </nav>
 
       <details class="site-nav-mobile relative" data-mobile-menu>
@@ -171,30 +181,34 @@ const isNewsActive = isPathActive("/news", "prefix");
           Menu
         </summary>
         <div class="absolute right-0 top-[calc(100%+0.45rem)] z-50 w-max max-w-[92vw] max-h-[70vh] overflow-auto rounded-xl border border-white/12 bg-[rgba(16,16,20,0.98)] p-2 shadow-[0_10px_30px_rgba(0,0,0,0.35)]" data-mobile-menu-panel>
-          <a
-            href="/"
-            class={`mb-1 block whitespace-nowrap rounded-lg border px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isHomeActive ? "border-sky-200/60 bg-sky-200/20 text-sky-100" : "border-white/8 bg-white/3 text-zinc-200 hover:bg-white/8"}`}
-            data-mobile-menu-link
-            data-nav-item
-            data-nav-home
-            data-active={isHomeActive ? "true" : "false"}
-          >
-            Home
-          </a>
+          <details class="mb-1 rounded-lg border border-white/8 bg-white/3 p-1" data-mobile-top-link>
+            <summary
+              class={`font-tech cursor-pointer list-none whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isHomeActive ? "bg-sky-200/20 text-sky-100" : "text-zinc-200 hover:bg-white/8"}`}
+              data-mobile-menu-link
+              data-mobile-nav-href="/"
+              data-nav-item
+              data-nav-home
+              data-active={isHomeActive ? "true" : "false"}
+            >
+              Home
+            </summary>
+          </details>
           {portalNodes.map((node) => (
             (() => {
               const nodeActive = isNodeActive(node);
               const newsEntry = node.id === "founder" ? (
-                <a
-                  href="/news"
-                  class={`mb-1 block whitespace-nowrap rounded-lg border px-3 py-2 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isNewsActive ? "border-sky-200/60 bg-sky-200/20 text-sky-100" : "border-white/8 bg-white/3 text-zinc-200 hover:bg-white/8"}`}
-                  data-mobile-menu-link
-                  data-nav-item
-                  data-nav-news
-                  data-active={isNewsActive ? "true" : "false"}
-                >
-                  News
-                </a>
+                <details class="mb-1 rounded-lg border border-white/8 bg-white/3 p-1" data-mobile-top-link>
+                  <summary
+                    class={`font-tech cursor-pointer list-none whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isNewsActive ? "bg-sky-200/20 text-sky-100" : "text-zinc-200 hover:bg-white/8"}`}
+                    data-mobile-menu-link
+                    data-mobile-nav-href="/news"
+                    data-nav-item
+                    data-nav-news
+                    data-active={isNewsActive ? "true" : "false"}
+                  >
+                    News
+                  </summary>
+                </details>
               ) : null;
               const primaryEntries = [...node.subItems];
               const curatedEntries = [...node.links];
@@ -274,6 +288,18 @@ const isNewsActive = isPathActive("/news", "prefix");
               );
             })()
           ))}
+          <details class="mb-1 rounded-lg border border-white/8 bg-white/3 p-1" data-mobile-top-link>
+            <summary
+              class={`font-tech cursor-pointer list-none whitespace-nowrap rounded-md px-2 py-1.5 text-right text-xs font-medium uppercase tracking-[0.12em] transition-colors ${isThanksActive ? "bg-sky-200/20 text-sky-100" : "text-zinc-200 hover:bg-white/8"}`}
+              data-mobile-menu-link
+              data-mobile-nav-href="/thanks"
+              data-nav-item
+              data-nav-thanks
+              data-active={isThanksActive ? "true" : "false"}
+            >
+              Thanks
+            </summary>
+          </details>
         </div>
       </details>
 
@@ -413,6 +439,23 @@ const isNewsActive = isPathActive("/news", "prefix");
       return;
     }
 
+    const summaryNav = target.closest("summary[data-mobile-nav-href]");
+    if (summaryNav instanceof HTMLElement) {
+      const href = summaryNav.getAttribute("data-mobile-nav-href");
+      if (href) {
+        event.preventDefault();
+        const menu = document.querySelector("details[data-mobile-menu]");
+        const submenus = document.querySelectorAll("details[data-mobile-submenu]");
+        const topLinks = document.querySelectorAll("details[data-mobile-top-link]");
+
+        submenus.forEach((el) => el.removeAttribute("open"));
+        topLinks.forEach((el) => el.removeAttribute("open"));
+        menu?.removeAttribute("open");
+        window.location.assign(href);
+      }
+      return;
+    }
+
     if (!target.closest("[data-mobile-menu-link]")) return;
 
     const menu = document.querySelector("details[data-mobile-menu]");
@@ -427,4 +470,15 @@ const isNewsActive = isPathActive("/news", "prefix");
       hideMaintenanceNotice();
     }
   });
+
+  document.addEventListener(
+    "toggle",
+    (event) => {
+      const target = event.target;
+      if (target instanceof HTMLDetailsElement && target.hasAttribute("data-mobile-top-link")) {
+        target.removeAttribute("open");
+      }
+    },
+    true,
+  );
 </script>

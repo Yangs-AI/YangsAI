@@ -1,0 +1,46 @@
+---
+import SubpageLayout from "../../layouts/SubpageLayout.astro";
+import BackButton from "../../components/BackButton.astro";
+---
+
+<SubpageLayout
+  title="Thanks | Yangs AI"
+  description="Acknowledgements to my PhD advisor and the support behind the Yangs AI research journey."
+>
+  <BackButton href="/" label="Back to Home" />
+
+  <p class="font-tech mt-5 text-xs uppercase tracking-[0.14em] text-zinc-300">Acknowledgements</p>
+  <h1 class="mt-3 text-4xl font-semibold tracking-tight text-zinc-100 md:text-5xl">Thanks</h1>
+
+  <p class="mt-5 max-w-4xl text-base leading-relaxed text-zinc-200 md:text-lg">
+    I would like to express my deepest gratitude to my PhD advisor,
+    <a
+      href="https://www.zhanjianfeng.org/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="underline decoration-zinc-400/60 underline-offset-3 transition hover:text-zinc-100 hover:decoration-zinc-200"
+    >
+      Prof. Jianfeng Zhan
+    </a>
+    . Without his sustained trust and support, I would not have had the opportunity to directly supervise one
+    master's student and one PhD student.
+  </p>
+
+  <p class="mt-4 max-w-4xl text-base leading-relaxed text-zinc-300 md:text-lg">
+    His guidance made it possible for me to secure the resources, platform, and energy needed to pursue a series
+    of research directions that I genuinely care about.
+  </p>
+
+  <p class="mt-4 max-w-4xl text-base leading-relaxed text-zinc-300 md:text-lg">
+    This website, along with the research content and public materials presented here, is also built on that support.
+    I remain sincerely thankful for his mentorship.
+  </p>
+
+  <div class="mt-8 rounded-2xl border border-white/15 bg-white/5 p-5 md:p-6">
+    <p class="font-tech text-xs uppercase tracking-[0.12em] text-zinc-300">Personal Note</p>
+    <p class="mt-3 text-sm leading-relaxed text-zinc-300 md:text-base">
+      This acknowledgement reflects the foundation behind the Yangs AI journey: mentorship, trust, and the
+      opportunity to transform ideas into meaningful research and open sharing.
+    </p>
+  </div>
+</SubpageLayout>
