@@ -413,6 +413,16 @@ const isThanksActive = isPathActive("/thanks", "prefix");
     overlay.setAttribute("aria-hidden", "true");
   };
 
+  const closeMobileMenu = () => {
+    const menu = document.querySelector("details[data-mobile-menu]");
+    const submenus = document.querySelectorAll("details[data-mobile-submenu]");
+    const topLinks = document.querySelectorAll("details[data-mobile-top-link]");
+
+    submenus.forEach((el) => el.removeAttribute("open"));
+    topLinks.forEach((el) => el.removeAttribute("open"));
+    menu?.removeAttribute("open");
+  };
+
   document.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -444,25 +454,25 @@ const isThanksActive = isPathActive("/thanks", "prefix");
       const href = summaryNav.getAttribute("data-mobile-nav-href");
       if (href) {
         event.preventDefault();
-        const menu = document.querySelector("details[data-mobile-menu]");
-        const submenus = document.querySelectorAll("details[data-mobile-submenu]");
-        const topLinks = document.querySelectorAll("details[data-mobile-top-link]");
-
-        submenus.forEach((el) => el.removeAttribute("open"));
-        topLinks.forEach((el) => el.removeAttribute("open"));
-        menu?.removeAttribute("open");
+        closeMobileMenu();
         window.location.assign(href);
       }
       return;
     }
 
+    const mobileMenu = document.querySelector("details[data-mobile-menu]");
+    if (
+      mobileMenu instanceof HTMLDetailsElement &&
+      mobileMenu.hasAttribute("open") &&
+      !target.closest("details[data-mobile-menu]")
+    ) {
+      closeMobileMenu();
+      return;
+    }
+
     if (!target.closest("[data-mobile-menu-link]")) return;
 
-    const menu = document.querySelector("details[data-mobile-menu]");
-    const submenus = document.querySelectorAll("details[data-mobile-submenu]");
-
-    submenus.forEach((el) => el.removeAttribute("open"));
-    menu?.removeAttribute("open");
+    closeMobileMenu();
   });
 
   document.addEventListener("keydown", (event) => {
