@@ -15,9 +15,25 @@ if (view !== "selected") {
 }
 
 const selectedPapers = papers.filter((paper) => paper.selected);
+
+const selectedPapersSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "url": "https://yangs.ai/research/papers/selected",
+  "name": "Selected Papers | Yangs AI",
+  "description": "Curated selected papers from Yangs AI research.",
+  "publisher": { "@id": "https://yangs.ai/#organization" },
+  "hasPart": selectedPapers.map((paper) => ({
+    "@type": "ScholarlyArticle",
+    "headline": paper.title,
+    "datePublished": paper.publishedOn,
+    "author": paper.authors.map((a) => ({ "@type": "Person", "name": a.name })),
+    ...(paper.paperUrl && { "url": paper.paperUrl }),
+  })),
+};
 ---
 
-<SubpageLayout title="Selected Papers | Yangs AI" description="Curated selected papers from Yangs AI research.">
+<SubpageLayout title="Selected Papers | Yangs AI" description="Curated selected papers from Yangs AI research." schema={selectedPapersSchema}>
   <BackButton href="/research/papers" label="All Papers" />
   <p class="font-tech mt-5 text-xs uppercase tracking-[0.14em] text-zinc-300">Curated</p>
   <h1 class="mt-2 text-4xl font-semibold tracking-tight text-zinc-100 md:text-5xl">Selected Papers</h1>

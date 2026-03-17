@@ -6,9 +6,22 @@ import SiteFooter from "../components/SiteFooter.astro";
 interface Props {
   title: string;
   description: string;
+  schema?: Record<string, unknown>;
 }
 
-const { title, description } = Astro.props;
+const { title, description, schema } = Astro.props;
+
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://yangs.ai/#organization",
+  "name": "Yangs AI",
+  "alternateName": "YangsAI",
+  "url": "https://yangs.ai",
+  "logo": "https://yangs.ai/brand/yangs-ai-wordmark.svg",
+  "description": "YangsAI is dedicated to discovering the fundamental principles of artificial intelligence.",
+  "sameAs": ["https://github.com/yangs-ai"],
+};
 ---
 
 <html lang="en">
@@ -28,6 +41,8 @@ const { title, description } = Astro.props;
     </script>
     <title>{title}</title>
     <meta name="description" content={description} />
+    <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
+    {schema && <script type="application/ld+json" set:html={JSON.stringify(schema)} />}
   </head>
   <body class="flex min-h-screen flex-col">
     <SiteHeader />

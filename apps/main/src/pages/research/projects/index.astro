@@ -3,9 +3,25 @@ import ProjectList from "../../../components/ProjectList.astro";
 import BackButton from "../../../components/BackButton.astro";
 import { projects } from "../../../data/projects";
 import SubpageLayout from "../../../layouts/SubpageLayout.astro";
+
+const projectsListSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "url": "https://yangs.ai/research/projects",
+  "name": "Research Projects | Yangs AI",
+  "description": "Project list for Yangs AI research.",
+  "publisher": { "@id": "https://yangs.ai/#organization" },
+  "hasPart": projects.map((project) => ({
+    "@type": "SoftwareApplication",
+    "name": project.title,
+    "description": project.summary,
+    ...(project.codeUrl && { "codeRepository": project.codeUrl }),
+    ...(project.projectUrl && { "url": project.projectUrl }),
+  })),
+};
 ---
 
-<SubpageLayout title="Research Projects | Yangs AI" description="Project list for Yangs AI research.">
+<SubpageLayout title="Research Projects | Yangs AI" description="Project list for Yangs AI research." schema={projectsListSchema}>
   <BackButton href="/research" label="Back to Research" />
   <p class="font-tech mt-5 text-xs uppercase tracking-[0.12em] text-zinc-300">Research</p>
   <h1 class="mt-4 text-4xl font-semibold tracking-tight text-zinc-100 md:text-5xl">Projects</h1>

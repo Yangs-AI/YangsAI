@@ -3,9 +3,25 @@ import PaperList from "../../../components/PaperList.astro";
 import BackButton from "../../../components/BackButton.astro";
 import { papers } from "../../../data/papers";
 import SubpageLayout from "../../../layouts/SubpageLayout.astro";
+
+const papersListSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "url": "https://yangs.ai/research/papers",
+  "name": "Research Papers | Yangs AI",
+  "description": "Paper list for Yangs AI research.",
+  "publisher": { "@id": "https://yangs.ai/#organization" },
+  "hasPart": papers.map((paper) => ({
+    "@type": "ScholarlyArticle",
+    "headline": paper.title,
+    "datePublished": paper.publishedOn,
+    "author": paper.authors.map((a) => ({ "@type": "Person", "name": a.name })),
+    ...(paper.paperUrl && { "url": paper.paperUrl }),
+  })),
+};
 ---
 
-<SubpageLayout title="Research Papers | Yangs AI" description="Paper list for Yangs AI research.">
+<SubpageLayout title="Research Papers | Yangs AI" description="Paper list for Yangs AI research." schema={papersListSchema}>
   <BackButton href="/research" label="Back to Research" />
   <p class="font-tech mt-5 text-xs uppercase tracking-[0.12em] text-zinc-300">Research</p>
   <h1 class="mt-4 text-4xl font-semibold tracking-tight text-zinc-100 md:text-5xl">Papers</h1>

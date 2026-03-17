@@ -118,6 +118,41 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 		thumbSrc: card.image || fallbackThumb,
 	};
 });
+
+const benchmarksSchema = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "Organization",
+			"@id": "https://yangs.ai/#organization",
+			"name": "Yangs AI",
+			"alternateName": "YangsAI",
+			"url": "https://yangs.ai",
+			"logo": "https://yangs.ai/brand/yangs-ai-wordmark.svg",
+			"description": "YangsAI is dedicated to discovering the fundamental principles of artificial intelligence.",
+			"sameAs": ["https://github.com/yangs-ai"],
+		},
+		{
+			"@type": "WebSite",
+			"@id": "https://benchmarks.yangs.ai/#website",
+			"url": "https://benchmarks.yangs.ai",
+			"name": "Benchmarks | YangsAI",
+			"description": "Benchmark Hub of YangsAI. Access leaderboard results, benchmark suites, and upcoming evaluation programs.",
+			"publisher": { "@id": "https://yangs.ai/#organization" },
+		},
+		{
+			"@type": "ItemList",
+			"name": "YangsAI Benchmarks",
+			"itemListElement": benchmarkCards.map((card, index) => ({
+				"@type": "ListItem",
+				"position": index + 1,
+				"name": card.title,
+				"description": card.description,
+				"url": card.href,
+			})),
+		},
+	],
+};
 ---
 
 <html lang="en">
@@ -151,6 +186,7 @@ const benchmarkCardsWithThumb = benchmarkCards.map((card) => {
 			name="description"
 			content="Benchmark Hub of YangsAI. Access leaderboard results, benchmark suites, and upcoming evaluation programs."
 		/>
+		<script type="application/ld+json" set:html={JSON.stringify(benchmarksSchema)} />
 	</head>
 	<body>
 		<header class="page-header">

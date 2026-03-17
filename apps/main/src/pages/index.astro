@@ -4,6 +4,30 @@ import "../styles/global.css";
 import NeuralPortal from "../components/NeuralPortal";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+
+const homepageSchema = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "Organization",
+			"@id": "https://yangs.ai/#organization",
+			"name": "Yangs AI",
+			"alternateName": "YangsAI",
+			"url": "https://yangs.ai",
+			"logo": "https://yangs.ai/brand/yangs-ai-wordmark.svg",
+			"description": "Official Yangs AI website: research, datasets, benchmarks, and initiatives for fundamental AI.",
+			"sameAs": ["https://github.com/yangs-ai"],
+		},
+		{
+			"@type": "WebSite",
+			"@id": "https://yangs.ai/#website",
+			"url": "https://yangs.ai",
+			"name": "Yangs AI",
+			"description": "Official Yangs AI website: research, datasets, benchmarks, and initiatives for fundamental AI.",
+			"publisher": { "@id": "https://yangs.ai/#organization" },
+		},
+	],
+};
 ---
 
 <html lang="en">
@@ -35,6 +59,7 @@ import SiteFooter from "../components/SiteFooter.astro";
 			name="description"
 			content="Official Yangs AI website: research, datasets, benchmarks, and initiatives for fundamental AI."
 		/>
+		<script type="application/ld+json" set:html={JSON.stringify(homepageSchema)} />
 	</head>
 	<body class="flex min-h-screen flex-col overflow-x-hidden overflow-y-auto bg-transparent xl:h-screen xl:overflow-hidden">
 		<SiteHeader />

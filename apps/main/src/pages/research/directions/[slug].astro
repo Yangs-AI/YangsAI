@@ -36,9 +36,21 @@ const title = frontmatter.title ?? slug;
 const summary = frontmatter.summary ?? "Direction detail page.";
 const updatedOn = frontmatter.updatedOn;
 const Content = module.Content as (props: Record<string, never>) => unknown;
+
+const directionUrl = `https://yangs.ai/research/directions/${slug}`;
+const articleSchema: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": summary,
+  "url": directionUrl,
+  ...(updatedOn && { "dateModified": updatedOn }),
+  "author": { "@id": "https://yangs.ai/#organization" },
+  "publisher": { "@id": "https://yangs.ai/#organization" },
+};
 ---
 
-<SubpageLayout title={`${title} | Directions | Yangs AI`} description={summary}>
+<SubpageLayout title={`${title} | Directions | Yangs AI`} description={summary} schema={articleSchema}>
   <BackButton href="/research/directions" label="Back to Directions" />
 
   <p class="font-tech mt-5 text-xs uppercase tracking-[0.12em] text-zinc-300">Direction</p>

@@ -167,9 +167,27 @@ const buildFallbackAvatar = (displayName: string, type: "employee" | "student") 
 
 const fallbackAvatar = buildFallbackAvatar(name, memberType);
 const avatarSrc = avatar || fallbackAvatar;
+
+const memberCanonicalUrl = `https://yangs.ai/team/members/${slug}`;
+const personSchema: Record<string, unknown> = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": name,
+  "url": memberCanonicalUrl,
+  ...(role && { "jobTitle": role }),
+  ...(affiliation && {
+    "worksFor": {
+      "@type": "Organization",
+      "name": affiliation,
+    },
+  }),
+  ...(summary && { "description": summary }),
+  ...(email && { "email": email }),
+  ...(website && { "sameAs": [website] }),
+};
 ---
 
-<SubpageLayout title={`${name} | Team | Yangs AI`} description={summary}>
+<SubpageLayout title={`${name} | Team | Yangs AI`} description={summary} schema={personSchema}>
   <BackButton href="/team/members" label="Back to Members" />
 
   <section class="mt-5 overflow-hidden rounded-2xl border border-white/14 bg-white/5" data-member-hero>
