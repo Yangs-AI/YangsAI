@@ -34,6 +34,8 @@ const joinClassNames = (...parts: Array<string | false | null | undefined>) => p
 
 type MemberData = {
   memberType: "employee" | "student";
+  publicationView?: "all" | "selected";
+  publicationLimit?: number;
   studentLevel?: StudentLevel;
   graduated?: boolean;
   graduationYear?: number;
@@ -80,6 +82,11 @@ const memberType = (data as MemberData).memberType;
 const studentLevel = (data as MemberData).studentLevel;
 const graduated = memberType === "student" ? (data as MemberData).graduated ?? false : false;
 const graduationYear = memberType === "student" ? (data as MemberData).graduationYear : undefined;
+const publicationView = (data as MemberData).publicationView ?? "all";
+const publicationLimitRaw = (data as MemberData).publicationLimit;
+const publicationLimit = typeof publicationLimitRaw === "number" && Number.isFinite(publicationLimitRaw) && publicationLimitRaw > 0
+  ? Math.floor(publicationLimitRaw)
+  : undefined;
 
 const normalizeName = (value: string) => value.replace(/\*/g, "").trim().toLowerCase().replace(/\s+/g, " ");
 const memberPapers = papers.filter((paper) => paper.authors.some((author) => normalizeName(author.name) === normalizeName(name)));
@@ -96,6 +103,8 @@ const extraMemberPapers: PaperEntry[] = extraPublications.map((paper, index) => 
 }));
 const knownTitles = new Set(memberPapers.map((paper) => paper.title.trim().toLowerCase()));
 const memberPaperFeed = [...memberPapers, ...extraMemberPapers.filter((paper) => !knownTitles.has(paper.title.trim().toLowerCase()))];
+const publicationFilteredPapers = publicationView === "selected" ? memberPaperFeed.filter((paper) => paper.selected) : memberPaperFeed;
+const displayedPapers = publicationLimit ? publicationFilteredPapers.slice(0, publicationLimit) : publicationFilteredPapers;
 
 const buildFallbackAvatar = (displayName: string, type: "employee" | "student") => {
   const escapedName = displayName
@@ -265,7 +274,7 @@ const personSchema: Record<string, unknown> = {
 
   <section class="mt-8">
     <div class="flex flex-wrap items-center gap-3">
-      <h2 class="text-2xl font-semibold text-zinc-100">Publications</h2>
+      <h2 class="text-2xl font-semibold text-zinc-100">{publicationView === "selected" ? "Selected Publications" : "Publications"}</h2>
       <a
         href="/research/papers"
         class="rounded-md border border-zinc-100/24 bg-white/8 px-2.5 py-1 text-xs font-medium text-zinc-100 hover:bg-white/16"
@@ -279,8 +288,15 @@ const personSchema: Record<string, unknown> = {
         Selected Papers
       </a>
     </div>
+    {publicationView === "selected" ? (
+      <p class="mt-3 text-sm text-zinc-300">
+        Showing highlighted papers authored by {name}{publicationLimit ? ` (top ${publicationLimit})` : ""}.
+      </p>
+    ) : publicationLimit ? (
+      <p class="mt-3 text-sm text-zinc-300">Showing top {publicationLimit} papers authored by {name}.</p>
+    ) : null}
     <PaperList
-      papers={memberPaperFeed}
+      papers={displayedPapers}
       emptyMessage={`No publications found for ${name} in src/data/papers.ts or extraPublications.`}
       disableAuthorLinkForName={name}
     />

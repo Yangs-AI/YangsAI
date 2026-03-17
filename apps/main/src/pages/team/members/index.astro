@@ -142,39 +142,6 @@ const alumniStudentGroups = buildStudentGroups(true);
     </section>
   ) : null}
 
-  {employees.length > 0 ? (
-    <section class="mt-8">
-      <p class="font-tech text-xs uppercase tracking-[0.12em] text-zinc-300">Employees</p>
-      <div class="mt-3 grid gap-4 md:grid-cols-2">
-        {employees.map((member) => (
-          <a href={`/team/members/${member.slug}`} class="rounded-xl border border-white/15 bg-white/5 p-5 hover:bg-white/10">
-            {(() => {
-              const avatar = getAvatarSources(member);
-              return (
-            <div class="flex items-center gap-3">
-              <img
-                src={avatar.src}
-                alt={`${member.name} portrait`}
-                class="h-14 w-14 rounded-full border border-white/16 object-cover"
-                loading="lazy"
-                decoding="async"
-                data-fallback-src={avatar.fallback}
-              />
-              <div>
-                <h2 class="text-xl font-medium text-zinc-100">{member.name}</h2>
-                <p class="mt-1 text-sm text-zinc-300">{member.role} · {member.affiliation}</p>
-              </div>
-            </div>
-              );
-            })()}
-            <p class="mt-2 text-sm leading-relaxed text-zinc-300">{member.summary}</p>
-            {member.updatedOn ? <p class="mt-3 text-xs text-zinc-400">Updated: {member.updatedOn}</p> : null}
-          </a>
-        ))}
-      </div>
-    </section>
-  ) : null}
-
   {currentStudentGroups.length > 0 || alumniStudentGroups.length > 0 ? (
     <section class="mt-8">
       <p class="font-tech text-xs uppercase tracking-[0.12em] text-zinc-300">Students</p>
@@ -259,6 +226,39 @@ const alumniStudentGroups = buildStudentGroups(true);
           ))}
         </div>
       ) : null}
+    </section>
+  ) : null}
+
+  {employees.length > 0 ? (
+    <section class="mt-8">
+      <p class="font-tech text-xs uppercase tracking-[0.12em] text-zinc-300">Employees</p>
+      <div class="mt-3 grid gap-4 md:grid-cols-2">
+        {employees.map((member) => (
+          <a href={`/team/members/${member.slug}`} class="rounded-xl border border-white/15 bg-white/5 p-5 hover:bg-white/10">
+            {(() => {
+              const avatar = getAvatarSources(member);
+              return (
+            <div class="flex items-center gap-3">
+              <img
+                src={avatar.src}
+                alt={`${member.name} portrait`}
+                class="h-14 w-14 rounded-full border border-white/16 object-cover"
+                loading="lazy"
+                decoding="async"
+                data-fallback-src={avatar.fallback}
+              />
+              <div>
+                <h2 class="text-xl font-medium text-zinc-100">{member.name}</h2>
+                <p class="mt-1 text-sm text-zinc-300">{member.role} · {member.affiliation}</p>
+              </div>
+            </div>
+              );
+            })()}
+            <p class="mt-2 text-sm leading-relaxed text-zinc-300">{member.summary}</p>
+            {member.updatedOn ? <p class="mt-3 text-xs text-zinc-400">Updated: {member.updatedOn}</p> : null}
+          </a>
+        ))}
+      </div>
     </section>
   ) : null}
 
